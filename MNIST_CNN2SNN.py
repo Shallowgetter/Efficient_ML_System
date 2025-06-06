@@ -111,13 +111,14 @@ def evaluate(model, testloader):
 
 # -------------------------------- Transform Model to SNN --------------------------------
 
-# Difine T steps
-T = 10
+# Define default simulation steps for the SNN
+DEFAULT_T = 10
 PATH_CNN_MODEL = r'model/mnist_cnn.pth'
 
 class SNN_MNIST_SpkingJelly(nn.Module):
-    def __init__(self, cnn_path=None):
+    def __init__(self, cnn_path=None, num_steps=DEFAULT_T):
         super(SNN_MNIST_SpkingJelly, self).__init__()
+        self.num_steps = num_steps
         self.conv1 = nn.Conv2d(1, 16, kernel_size=5, stride=1, padding=2)
         self.pooling1 = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
         self.if1 = neuron.IFNode(v_threshold=1.0, v_reset=0.0)
@@ -141,7 +142,9 @@ class SNN_MNIST_SpkingJelly(nn.Module):
         self.fc2.load_state_dict({k.replace('fc2.', ''): v for k, v in cnn_state_dict.items() if 'fc2' in k})
         print("Model weights loaded successfully.")
 
-    def forward(self, X):
+    def forward(self, X, num_steps=None):
+        if num_steps is None:
+            num_steps = self.num_steps
         # X shape: (N, C, H, W)
         n = X.shape[0]
         # out_spike_counter = torch.zeros(n, 10, device=X.device)  # Counter spikes for fc2
@@ -151,7 +154,7 @@ class SNN_MNIST_SpkingJelly(nn.Module):
         self.if2.reset()
         self.if3.reset()
 
-        for t in range(T):
+        for t in range(num_steps):
             x_conv1 = self.conv1(X)
             x_pooling1 = self.pooling1(x_conv1)
             x_if1 = self.if1(x_pooling1)
@@ -188,7 +191,7 @@ def evaluate_snn(model, test_loader, num_steps, device='cpu'):
             inputs = inputs.to(device)
             labels = labels.to(device)
 
-            outputs = model(inputs)
+            outputs = model(inputs, num_steps)
             _, predicted = torch.max(outputs, 1)
 
             total += labels.size(0)
@@ -229,7 +232,7 @@ def train_snn(model, train_loader, criterion, optimizer, device='cpu', epochs=10
                 running_loss = 0.0 
         print(f'Epoch [{epoch+1}/{epochs}] completed.')
 
-snn_model = SNN_MNIST_SpkingJelly(cnn_path=PATH_CNN_MODEL)
+snn_model = SNN_MNIST_SpkingJelly(cnn_path=PATH_CNN_MODEL, num_steps=DEFAULT_T)
 
 
 
@@ -243,7 +246,7 @@ def test1(model, train_loader, test_loader, device='cpu', epochs=5):
 
     print('Test1: Training SNN with pre-trained CNN weights(not training SNN model)')
     # train_snn(model, train_loader, criterion, optimizer, device=device, epochs=epochs) # Optical for we've pre-trained CNN model
-    acc, epoch_run_time = evaluate_snn(model, test_loader, T, device=device)
+    acc, epoch_run_time = evaluate_snn(model, test_loader, model.num_steps, device=device)
     print(f'Accuracy after training: {acc:.2f}%')
     print(f'Epoch running time: {epoch_run_time}')
     print(f'Total evaluation time: {sum(epoch_run_time):.2f} seconds')
@@ -263,7 +266,7 @@ def test2(model, train_loader, test_loader, device='cpu', epochs=5):
 
     print('Test2: Training SNN with pre-trained CNN weights and training SNN model')
     train_snn(model, train_loader, criterion, optimizer, device=device, epochs=epochs)
-    acc, epoch_run_time = evaluate_snn(model, test_loader, T, device=device)
+    acc, epoch_run_time = evaluate_snn(model, test_loader, model.num_steps, device=device)
     print(f'Accuracy after training: {acc:.2f}%')
     print(f'Epoch running time: {epoch_run_time}')
     print(f'Total evaluation time: {sum(epoch_run_time):.2f} seconds')
@@ -274,4 +277,4 @@ def test2(model, train_loader, test_loader, device='cpu', epochs=5):
         f.write(f'Epoch running time: {epoch_run_time}\n')
     print('Results saved to snn_mnist_results.txt')
 
-test2(snn_model, trainloader, testloader, device='cpu', epochs=5) # test2
+test2(snn_model, trainloader, testloader, device='cpu', epochs=5)
