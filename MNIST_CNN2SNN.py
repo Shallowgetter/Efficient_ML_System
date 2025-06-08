@@ -113,7 +113,7 @@ def evaluate(model, testloader):
 
 # Difine T steps
 T = 10
-PATH_CNN_MODEL = r'model/mnist_cnn.pth'
+PATH_CNN_MODEL = r'Efficient_ML_System/model/mnist_cnn.pth'
 
 class SNN_MNIST_SpkingJelly(nn.Module):
     def __init__(self, cnn_path=None):
@@ -238,8 +238,8 @@ snn_model = SNN_MNIST_SpkingJelly(cnn_path=PATH_CNN_MODEL)
 # -------------------------------- Test Functions --------------------------------
 def test1(model, train_loader, test_loader, device='cpu', epochs=5):
     model.to(device)
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    # criterion = nn.CrossEntropyLoss()
+    # optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
     print('Test1: Training SNN with pre-trained CNN weights(not training SNN model)')
     # train_snn(model, train_loader, criterion, optimizer, device=device, epochs=epochs) # Optical for we've pre-trained CNN model
