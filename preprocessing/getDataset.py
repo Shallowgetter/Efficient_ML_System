@@ -9,7 +9,6 @@ from typing import Dict, List, Sequence, Tuple, Optional
 from dataclasses import dataclass
 
 import numpy as np
-import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
@@ -219,5 +218,6 @@ if __name__ == "__main__":
     print("Batch X shape:", x.shape)   # (32, 500, 12)
     print("Batch y shape:", y.shape)
     print(len(loader))  # Number of batches
+    print("Label: ", y.unique())  # Unique labels in the batch
     print("First sample X:", x[0])     # (500, 12)
     print("First sample y:", y[0])     # Scalar label

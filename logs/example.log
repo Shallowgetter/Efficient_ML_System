@@ -1,0 +1,6 @@
+[2025-06-23 11:54:50][utils.py:115][INFO] Logger initialized!
+[2025-06-23 11:54:50][utils.py:121][DEBUG] Step 00 | 0.6394 (avg: 0.6394)
+[2025-06-23 11:54:50][utils.py:121][DEBUG] Step 01 | 0.0250 (avg: 0.3322)
+[2025-06-23 11:54:50][utils.py:121][DEBUG] Step 02 | 0.2750 (avg: 0.3132)
+[2025-06-23 11:54:50][utils.py:121][DEBUG] Step 03 | 0.2232 (avg: 0.2907)
+[2025-06-23 11:54:50][utils.py:121][DEBUG] Step 04 | 0.7365 (avg: 0.3798)
