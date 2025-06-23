@@ -1,0 +1,121 @@
+"""
+utils.py
+========
+Efficient_Computing_System Experiment Platform Utility Collection (v0.1)
+
+Currently provides:
+    1. seed_all(seed)         -- Fix random seeds to ensure reproducibility
+    2. get_logger(fname, ...) -- Unified log format/level/output endpoints
+    3. AverageMeter           -- Metric average value & rolling updates
+
+Functions or classes can be appended to this file later, maintaining modularity and zero CLI calls.
+"""
+
+from __future__ import annotations
+import os
+import random
+import logging
+from pathlib import Path
+from typing import Optional
+
+import numpy as np
+import torch
+
+
+# ------------------------------------------------------------------ #
+# 1. Reproduce experiments: Fix random seeds
+# ------------------------------------------------------------------ #
+def seed_all(seed: int = 1029) -> None:
+    """Fix PyTorch / NumPy / Python random seeds to ensure reproducible results."""
+    random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    np.random.seed(seed)
+
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    # torch.cuda.manual_seed_all(seed)  # multi-GPU environment
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
+
+
+def get_logger(
+    filename: str | Path,
+    name: Optional[str] = None,
+    level: int | str = "INFO",
+    overwrite: bool = True,
+    to_stdout: bool = True,
+) -> logging.Logger:
+    """
+    Create and return a logger with a unified format.
+
+    Parameters
+    ----------
+    filename  : Log file path
+    name      : Logger name (None → root)
+    level     : 'DEBUG' | 'INFO' | 'WARNING' etc. or corresponding integer
+    overwrite : True → rewrite file; False → append
+    to_stdout : Whether to synchronize output to terminal
+    """
+    lvl = logging._nameToLevel[level] if isinstance(level, str) else level
+    fmt = "[%(asctime)s][%(filename)s:%(lineno)d][%(levelname)s] %(message)s"
+    datefmt = "%Y-%m-%d %H:%M:%S"
+
+    logger = logging.getLogger(name)
+    logger.setLevel(lvl)
+    logger.handlers.clear()  # avoid adding duplicate handlers
+
+    # FileHandler
+    log_file = Path(filename)
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+    fh_mode = "w" if overwrite else "a"
+    fh = logging.FileHandler(log_file, mode=fh_mode, encoding="utf-8")
+    fh.setFormatter(logging.Formatter(fmt, datefmt=datefmt))
+    logger.addHandler(fh)
+
+    # StreamHandler
+    if to_stdout:
+        sh = logging.StreamHandler()
+        sh.setFormatter(logging.Formatter(fmt, datefmt=datefmt))
+        logger.addHandler(sh)
+
+    return logger
+
+
+
+class AverageMeter:
+    """Track and update cumulative averages, used for loss/accuracy statistics."""
+
+    def __init__(self) -> None:
+        self.reset()
+
+    def reset(self) -> None:
+        self.val = 0.0
+        self.sum = 0.0
+        self.count = 0
+        self.avg = 0.0
+
+    def update(self, val: float, n: int = 1) -> None:
+        self.val = float(val)
+        self.sum += float(val) * n
+        self.count += n
+        self.avg = self.sum / self.count if self.count else 0.0
+
+    def __str__(self) -> str:
+        return f"{self.val:.4f} (avg: {self.avg:.4f})"
+
+
+
+if __name__ == "__main__":
+    # Fix randomness
+    seed_all(42)
+
+    # Get logger
+    logger = get_logger("logs/example.log", level="DEBUG")
+    logger.info("Logger initialized!")
+
+    # Simulate metric updates
+    meter = AverageMeter()
+    for step in range(5):
+        meter.update(val=random.random(), n=1)
+        logger.debug(f"Step {step:02d} | {meter}")
