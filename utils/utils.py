@@ -13,6 +13,7 @@ Functions or classes can be appended to this file later, maintaining modularity 
 
 from __future__ import annotations
 import os
+import warnings
 import random
 import logging
 from pathlib import Path
@@ -119,3 +120,24 @@ if __name__ == "__main__":
     for step in range(5):
         meter.update(val=random.random(), n=1)
         logger.debug(f"Step {step:02d} | {meter}")
+
+
+
+def _handle_hidden(n_hidden):
+    "Haddle hidden layers from yaml config."
+    if type(n_hidden) == int:
+        n_layers = 1
+        hidden_dim = n_hidden
+    elif type(n_hidden) == str:
+        n_hidden = n_hidden.split(",")
+        n_hidden = [int(x) for x in n_hidden]
+        n_layers = len(n_hidden)
+        hidden_dim = n_hidden[0]
+
+        if np.std(n_hidden) != 0:
+            warnings.warn('use the first hidden num, '
+                          'the rest hidden numbers are deprecated', UserWarning)
+    else:
+        raise TypeError('n_hidden should be a string or a int.')
+
+    return hidden_dim, n_layers

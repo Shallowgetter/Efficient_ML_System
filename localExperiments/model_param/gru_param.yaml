@@ -1,10 +1,7 @@
 model:
-  input_size: 12
-  hidden_size: 64
-  num_layers: 2
-  rnn_type: GRU
-  bidirectional: true
-  dropout: 0.2
-  batch_first: true
-  return_sequence: true
-  num_classes: 8
+ name: GRUNet
+ hidden_size: 64
+ num_layers: 2
+ dropout: 0.5
+ bidirectional: true
+ activation: relu
