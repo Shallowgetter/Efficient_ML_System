@@ -1,7 +1,0 @@
-model:
- name: GRUNet
- hidden_size: 64
- num_layers: 2
- dropout: 0.5
- bidirectional: true
- activation: relu

@@ -1,0 +1,22 @@
+model:
+ - name: MLP
+   model_name: MLP_test_1 # This is the name of the model, not the type of model
+   dataLoader: 'get_npz_dataloader'
+   input_size: 10800
+   lr: 0.001
+   batch_size: 1024
+   criterion: 'CrossEntropyLoss'
+   optimizer: 'Adam'
+   epochs: 100
+   dropout: 0.2
+
+ - name: MLP
+   model_name: MLP_test_2
+   dataLoader: 'get_dataloader'
+   input_size: 3600
+   lr: 0.001
+   batch_size: 1024
+   criterion: 'CrossEntropyLoss'
+   optimizer: 'Adam'
+   epochs: 100
+   dropout: 0.2

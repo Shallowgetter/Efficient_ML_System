@@ -32,8 +32,8 @@ class SHLConfig:
     dtype: torch.dtype = torch.float32
 
 
-_ACC_COLS = [2, 3, 4]               # 0-index, corresponding to columns 3-5 [turn0file2]
-_GYRO_COLS = [5, 6, 7]              # 0-index, corresponding to columns 6-8 [turn0file2]
+_ACC_COLS = [1, 2, 3]               # 0-index, corresponding to columns 2-4 [turn0file2]
+_GYRO_COLS = [4, 5, 6]              # 0-index, corresponding to columns 5-7 [turn0file2]
 _MAG_COLS = [7, 8, 9]               # 0-index, corresponding to columns 8-10 [turn0file2]
 
 
@@ -71,14 +71,22 @@ def normalize_features(data: np.ndarray) -> np.ndarray:
 
 def load_recording(date_dir: Path,
                    positions: Sequence[str],
-                   label_type: str = "coarse") -> Tuple[np.ndarray, np.ndarray]:
+                   label_type: str = "coarse",
+                   mag_only: bool = False) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Read sensor data from four positions + labels from the same date directory.
-
+    Read sensor data from positions + labels from the same date directory.
+    
+    Parameters
+    ----------
+    date_dir : Path to date directory
+    positions : Sequence of positions (e.g., ["Hand", "Bag"])
+    label_type : Type of labels to load ("coarse" or "fine")
+    mag_only : If True, load only magnetometer data
+    
     Returns
     -------
-    data  : (N, 36) float32 - 9 features (3 acc, 3 gyro, 3 mag) × 4 positions
-    label : (N,)   int16
+    data : numpy array of sensor data
+    label : numpy array of labels
     """
     # Concatenate according to positions order
     sensor_list: List[np.ndarray] = []
@@ -86,7 +94,7 @@ def load_recording(date_dir: Path,
         p = date_dir / f"{pos}_Motion.txt"
         if not p.exists():
             raise FileNotFoundError(f"Missing motion file: {p}")
-        sensor_list.append(parse_motion_file(p))
+        sensor_list.append(parse_motion_file(p, mag_only=mag_only))
 
     # Check length consistency
     lengths = [m.shape[0] for m in sensor_list]
@@ -258,9 +266,11 @@ class SHLMagDataset(Dataset):
 
     def __init__(self,
                  cfg: SHLConfig,
-                 transform=None):
+                 transform=None,
+                 mag_only: bool = True):
         self.cfg = cfg
         self.transform = transform
+        self.mag_only = mag_only
 
         self.chunks: List[Dict] = []        # Each recording's {"data":ndarray, "label":ndarray}
         self.index_map: List[Tuple[int, int]] = []  # (chunk_idx, start_idx)
@@ -336,31 +346,79 @@ class SHLMagDataset(Dataset):
 
         return x, y
 
-
-
-
-def get_dataloader(cfg: SHLConfig,
-                   batch_size: int = 32,
-                   shuffle: bool = True,
-                   num_workers: int = 4,
-                   transform=None) -> DataLoader:
+def get_dataloader(npz_path: str,
+                  batch_size: int = 32,
+                  shuffle: bool = True,
+                  num_workers: int = 4,
+                  dtype: torch.dtype = torch.float32,
+                  transform=None) -> DataLoader:
     """
-    Convenience function to construct DataLoader.
-
+    Convenience function to construct DataLoader from npz file, focusing on magnetometer data.
+    
     Parameters
     ----------
-    cfg         : SHLConfig
-    batch_size  : Batch size
-    shuffle     : Whether to shuffle (only for training)
+    npz_path : Path to the npz file
+    batch_size : Batch size
+    shuffle : Whether to shuffle (only for training)
     num_workers : Number of PyTorch DataLoader workers
-    transform   : Optional data augmentation function
+    dtype : Data type for tensor conversion
+    transform : Optional data augmentation function
+    
+    Returns
+    -------
+    DataLoader : PyTorch DataLoader with samples shaped (batch, 12, window_size)
+                where 12 represents magnetometer data from 4 positions × 3 axes
     """
-    dataset = SHLMagDataset(cfg, transform=transform)
-    return DataLoader(dataset,
-                      batch_size=batch_size,
-                      shuffle=shuffle,
-                      num_workers=num_workers,
-                      pin_memory=True)
+    class SHLMagNpzDataset(Dataset):
+        """Dataset that extracts only magnetometer data from npz files"""
+        
+        def __init__(self, npz_path, dtype=torch.float32, transform=None):
+            data = np.load(npz_path)
+            self.x_full = data['x']  # (n_samples, n_features, window_size)
+            self.y = data['y']  # (n_samples,)
+            
+            # Extract only magnetometer columns (3 axes × 4 positions = 12 features)
+            # For each position (Hand, Bag, Hips, Torso), extract columns 7,8,9 (mag data)
+            mag_indices = []
+            for pos_idx in range(4):  # 4 positions
+                base_idx = pos_idx * 9  # 9 features per position (acc, gyro, mag)
+                mag_start = base_idx + 6  # Magnetometer starts at index 6 (0-indexed)
+                mag_indices.extend([mag_start, mag_start + 1, mag_start + 2])
+            
+            self.x = self.x_full[:, mag_indices, :]  # Only keep magnetometer data
+            self.dtype = dtype
+            self.transform = transform
+        
+        def __len__(self):
+            return len(self.y)
+        
+        def __getitem__(self, idx):
+            x = torch.as_tensor(self.x[idx], dtype=self.dtype)
+            y = torch.as_tensor(self.y[idx] - 1, dtype=torch.long)
+            
+            if self.transform:
+                x = self.transform(x)
+                
+            return x, y
+    
+    # Create dataset and dataloader
+    dataset = SHLMagNpzDataset(
+        npz_path=npz_path,
+        dtype=dtype,
+        transform=transform
+    )
+    
+    return DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        pin_memory=True
+    )
+
+
+
+
 
 
 class SHLNpzDataset(Dataset):
