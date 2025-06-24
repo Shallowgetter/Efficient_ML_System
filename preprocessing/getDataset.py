@@ -181,18 +181,23 @@ def process_and_save_dataset(cfg: SHLConfig,
             window_data = data[start:end]
             window_labels = labels[start:end]
             
-            # Null label filtering
+            # Null label filtering - overlook windows with all labels as 0
             if cfg.drop_null and np.all(window_labels == 0):
                 continue
                 
             # Multiple labels → take mode
             if cfg.drop_null:
                 y_non_zero = window_labels[window_labels != 0]
-                y_scalar = int(np.bincount(y_non_zero).argmax()) if y_non_zero.size else 0
+                if y_non_zero.size == 0:  # This case theoretically shouldn't happen, but added for safety
+                    continue
+                y_scalar = int(np.bincount(y_non_zero).argmax())
+                # Additional check to ensure y_scalar is not 0
+                if y_scalar == 0:
+                    continue
             else:
                 y_scalar = int(np.bincount(window_labels).argmax())
-                
-            # Store window and its label
+
+            # Store the window and its label
             all_windows.append(window_data)
             all_labels.append(y_scalar)
     
@@ -394,7 +399,7 @@ class SHLNpzDataset(Dataset):
     
     def __getitem__(self, idx):
         x = torch.as_tensor(self.x[idx], dtype=self.dtype)
-        y = torch.as_tensor(self.y[idx], dtype=torch.long)
+        y = torch.as_tensor(self.y[idx] - 1, dtype=torch.long)
         
         if self.transform:
             x = self.transform(x)
@@ -461,6 +466,7 @@ if __name__ == "__main__":
         batch_size=1024,
         shuffle=True
     )
+
     
     # test_loader = get_npz_dataloader(
     #     npz_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/shl_test.npz",

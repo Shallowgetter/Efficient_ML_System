@@ -1,1 +1,31 @@
-[2025-06-24 15:20:47][mlp_test.py:70][INFO] Epoch 1/10
+[2025-06-24 16:48:22][mlp_test.py:80][INFO] Epoch 1/10
+[2025-06-24 16:48:22][mlp_test.py:100][INFO] Step 0, Loss: 2.2076
+[2025-06-24 16:48:25][mlp_test.py:104][INFO] Epoch 1 completed. Train Loss: 2.0803, Val Loss: 2.0726, Val Accuracy: 29.93%
+[2025-06-24 16:48:25][mlp_test.py:80][INFO] Epoch 2/10
+[2025-06-24 16:48:25][mlp_test.py:100][INFO] Step 0, Loss: 2.1025
+[2025-06-24 16:48:27][mlp_test.py:104][INFO] Epoch 2 completed. Train Loss: 2.1087, Val Loss: 2.1096, Val Accuracy: 26.23%
+[2025-06-24 16:48:27][mlp_test.py:80][INFO] Epoch 3/10
+[2025-06-24 16:48:27][mlp_test.py:100][INFO] Step 0, Loss: 2.0966
+[2025-06-24 16:48:29][mlp_test.py:104][INFO] Epoch 3 completed. Train Loss: 2.0853, Val Loss: 2.0856, Val Accuracy: 28.64%
+[2025-06-24 16:48:29][mlp_test.py:80][INFO] Epoch 4/10
+[2025-06-24 16:48:29][mlp_test.py:100][INFO] Step 0, Loss: 2.0790
+[2025-06-24 16:48:31][mlp_test.py:104][INFO] Epoch 4 completed. Train Loss: 2.0892, Val Loss: 2.0955, Val Accuracy: 27.64%
+[2025-06-24 16:48:31][mlp_test.py:80][INFO] Epoch 5/10
+[2025-06-24 16:48:31][mlp_test.py:100][INFO] Step 0, Loss: 2.1112
+[2025-06-24 16:48:33][mlp_test.py:104][INFO] Epoch 5 completed. Train Loss: 2.0958, Val Loss: 2.0830, Val Accuracy: 28.90%
+[2025-06-24 16:48:33][mlp_test.py:80][INFO] Epoch 6/10
+[2025-06-24 16:48:33][mlp_test.py:100][INFO] Step 0, Loss: 2.0780
+[2025-06-24 16:48:35][mlp_test.py:104][INFO] Epoch 6 completed. Train Loss: 2.1094, Val Loss: 2.1275, Val Accuracy: 24.44%
+[2025-06-24 16:48:35][mlp_test.py:80][INFO] Epoch 7/10
+[2025-06-24 16:48:35][mlp_test.py:100][INFO] Step 0, Loss: 2.1141
+[2025-06-24 16:48:37][mlp_test.py:104][INFO] Epoch 7 completed. Train Loss: 2.1037, Val Loss: 2.0918, Val Accuracy: 28.02%
+[2025-06-24 16:48:37][mlp_test.py:80][INFO] Epoch 8/10
+[2025-06-24 16:48:37][mlp_test.py:100][INFO] Step 0, Loss: 2.0780
+[2025-06-24 16:48:39][mlp_test.py:104][INFO] Epoch 8 completed. Train Loss: 2.0903, Val Loss: 2.0894, Val Accuracy: 28.26%
+[2025-06-24 16:48:39][mlp_test.py:80][INFO] Epoch 9/10
+[2025-06-24 16:48:39][mlp_test.py:100][INFO] Step 0, Loss: 2.1405
+[2025-06-24 16:48:41][mlp_test.py:104][INFO] Epoch 9 completed. Train Loss: 2.0892, Val Loss: 2.0896, Val Accuracy: 28.23%
+[2025-06-24 16:48:41][mlp_test.py:80][INFO] Epoch 10/10
+[2025-06-24 16:48:41][mlp_test.py:100][INFO] Step 0, Loss: 2.0878
+[2025-06-24 16:48:43][mlp_test.py:104][INFO] Epoch 10 completed. Train Loss: 2.0901, Val Loss: 2.0909, Val Accuracy: 28.11%
+[2025-06-24 16:48:43][mlp_test.py:123][INFO] Training completed. Best validation accuracy: 29.93%
