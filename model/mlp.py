@@ -6,7 +6,7 @@ the MLP structure is FC(128) - FC(256) - FC(512) - FC(1024) - Softmax(8).
 import torch
 
 class MLP(torch.nn.Module):
-    def __init__(self, input_size: int, hidden_size: int, output_size: int, dropout: float = 0.5):
+    def __init__(self, input_size: int, dropout: float = 0.5):
         super(MLP, self).__init__()
         self.fc1 = torch.nn.Linear(input_size, 128)
         self.fc2 = torch.nn.Linear(128, 256)

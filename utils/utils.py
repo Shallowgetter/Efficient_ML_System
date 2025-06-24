@@ -141,3 +141,77 @@ def _handle_hidden(n_hidden):
         raise TypeError('n_hidden should be a string or a int.')
 
     return hidden_dim, n_layers
+
+
+
+def save_checkpoint(model, optimizer, epoch, loss, accuracy=None, filename='checkpoint.pth', is_best=False, best_filename='model_best.pth'):
+    """
+    Save a checkpoint of the model and optimizer state.
+    
+    Parameters
+    ----------
+    model: torch.nn.Module
+        The model to save
+    optimizer: torch.optim.Optimizer
+        The optimizer
+    epoch: int
+        Current epoch
+    loss: float
+        Current loss value
+    accuracy: float, optional
+        Current accuracy (if available)
+    filename: str
+        The filename to save the checkpoint
+    is_best: bool
+        Whether the current model is the best model
+    best_filename: str
+        The filename to save the best model
+    """
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+    }
+    
+    if accuracy is not None:
+        checkpoint['accuracy'] = accuracy
+
+    # Save the current checkpoint
+    torch.save(checkpoint, filename)
+
+    # If it is the best model, copy a version
+
+    if is_best:
+        import shutil
+        shutil.copyfile(filename, best_filename)
+
+
+def load_checkpoint(filename, model, optimizer=None):
+    """
+    load a checkpoint from a file and load the model and optimizer states.
+    
+    Parameters
+    ----------
+    filename: str
+        path to the checkpoint file
+    model: torch.nn.Module
+        model to load parameters into
+    optimizer: torch.optim.Optimizer, optional
+        optimizer to load state into
+
+    Returns
+    -------
+    dict
+        all information from the checkpoint
+    """
+    checkpoint = torch.load(filename)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    
+    if optimizer is not None and 'optimizer_state_dict' in checkpoint:
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    
+    return checkpoint
+
+
+
