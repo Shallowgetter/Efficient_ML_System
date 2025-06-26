@@ -37,10 +37,12 @@ _GYRO_COLS = [4, 5, 6]              # 0-index, corresponding to columns 5-7 [tur
 _MAG_COLS = [7, 8, 9]               # 0-index, corresponding to columns 8-10 [turn0file2]
 
 
-def parse_motion_file(path: Path) -> np.ndarray:
+def parse_motion_file(path: Path, mag_only: bool = False) -> np.ndarray:
     """Read a single *_Motion.txt file and return a (N, 3) magnetometer matrix."""
     data = np.loadtxt(path, dtype=np.float32)
-    return data[:,_ACC_COLS + _GYRO_COLS + _MAG_COLS]       # Keep AccX, AccY, AccZ, GYRO_X, GYRO_Y, GYRO_Z, MagX, MagY, MagZ
+    if mag_only:
+        return data[:, _MAG_COLS]  # Keep only magnetometer columns
+    return data[:, _ACC_COLS + _GYRO_COLS + _MAG_COLS]  # Keep all columns
 
 
 def parse_label_file(path: Path, label_type: str = "coarse") -> np.ndarray:
@@ -111,7 +113,7 @@ def load_recording(date_dir: Path,
     return data, labels
 
 
-def slice_index(total_len: int, window: int, step: Optional[int] = None, overlap: float = 0.0) -> List[int]:
+def slice_index(total_len: int, window: int, step: Optional[int] = None, overlap: float = 0.3) -> List[int]:
     """
     Return all window start indices (inclusive, closed interval).
     
@@ -136,112 +138,7 @@ def slice_index(total_len: int, window: int, step: Optional[int] = None, overlap
         # Ensure step is at least 1 to avoid infinite loop
         step = max(1, computed_step)
         return list(range(0, total_len - window + 1, step))
-
-
-def process_and_save_dataset(cfg: SHLConfig, 
-                             output_path: str, 
-                             train_ratio: float = 0.8) -> None:
-    """
-    Process the dataset, split into train/test sets, and save as npz files.
     
-    Parameters
-    ----------
-    cfg: SHLConfig
-        Configuration for dataset processing
-    output_path: str
-        Path where to save the npz files
-    train_ratio: float
-        Ratio of data to use for training (default 0.8)
-    """
-    output_dir = Path(output_path)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Collect all windows and labels
-    all_windows = []
-    all_labels = []
-    
-    date_dirs = _iter_date_dirs(cfg)
-    for date_dir in tqdm(date_dirs, desc="Loading data directories"):
-        try:
-            data, labels = load_recording(
-                date_dir,
-                cfg.positions,
-                label_type=cfg.label_type
-            )
-        except (FileNotFoundError, ValueError) as e:
-            print(f"Error processing {date_dir}: {e}")
-            continue
-
-        # generate windows index，support overlap
-        window_indices = slice_index(
-            total_len=data.shape[0],
-            window=cfg.window_size,
-            step=cfg.step_size,
-            overlap=cfg.overlap
-        )
-        
-        # Process each window
-        for start in window_indices:
-            end = start + cfg.window_size
-            if end > data.shape[0]:
-                continue
-                
-            window_data = data[start:end]
-            window_labels = labels[start:end]
-            
-            # Null label filtering - overlook windows with all labels as 0
-            if cfg.drop_null and np.all(window_labels == 0):
-                continue
-                
-            # Multiple labels → take mode
-            if cfg.drop_null:
-                y_non_zero = window_labels[window_labels != 0]
-                if y_non_zero.size == 0:  # This case theoretically shouldn't happen, but added for safety
-                    continue
-                y_scalar = int(np.bincount(y_non_zero).argmax())
-                # Additional check to ensure y_scalar is not 0
-                if y_scalar == 0:
-                    continue
-            else:
-                y_scalar = int(np.bincount(window_labels).argmax())
-
-            # Store the window and its label
-            all_windows.append(window_data)
-            all_labels.append(y_scalar)
-    
-    # Convert to numpy arrays
-    all_windows = np.array(all_windows, dtype=np.float32)
-    all_labels = np.array(all_labels, dtype=np.int16)
-    
-    # Reshape from (n_samples, window_size, n_features) to (n_samples, n_features, window_size)
-    all_windows = np.transpose(all_windows, (0, 2, 1))
-    
-    # Randomly shuffle data
-    indices = np.random.permutation(len(all_windows))
-    all_windows = all_windows[indices]
-    all_labels = all_labels[indices]
-    
-    # Split into train and test
-    split_idx = int(len(all_windows) * train_ratio)
-    train_x = all_windows[:split_idx]
-    train_y = all_labels[:split_idx]
-    test_x = all_windows[split_idx:]
-    test_y = all_labels[split_idx:]
-    
-    # Save to npz files
-    np.savez(
-        output_dir / "shl_train.npz",
-        x=train_x,
-        y=train_y
-    )
-    np.savez(
-        output_dir / "shl_test.npz",
-        x=test_x,
-        y=test_y
-    )
-    
-    print(f"Dataset saved. Train shape: {train_x.shape}, Test shape: {test_x.shape}")
-
 
 def _iter_date_dirs(cfg: SHLConfig) -> List[Path]:
     """Recursively scan all date directories containing *_Motion.txt files."""
@@ -255,103 +152,310 @@ def _iter_date_dirs(cfg: SHLConfig) -> List[Path]:
     return sorted(dirs)
 
 
+def process_and_save_dataset(cfg: SHLConfig,
+                             output_path: str,
+                             train_ratio: float = 0.8,
+                             seed: int = 42) -> None:
+    """
+    1) Process raw SHL recordings and save as NPZ files.
+    2) Split into training and validation sets based on directory count.
+    Parameters
+    ----------
+    cfg : SHLConfig
+        Configuration object containing dataset parameters.
+    output_path : str
+        Path to save the processed NPZ files.
+    train_ratio : float
+        Ratio of training set size to total dataset size (default 0.8).
+    seed : int
+        Random seed for shuffling directories (default 42).
+    """
+    rng = np.random.RandomState(seed)
+    date_dirs = _iter_date_dirs(cfg)
+    rng.shuffle(date_dirs)
+
+    # 收集所有目录的信息
+    dir_info = []
+    all_labels_set = set()
+    
+    for date_dir in tqdm(date_dirs, desc="Loading recordings"):
+        try:
+            data, labels = load_recording(date_dir, cfg.positions, cfg.label_type)
+            
+            if cfg.drop_null:
+                valid_indices = labels != 0
+                if not np.any(valid_indices):
+                    continue
+            filtered_data = data[valid_indices] if cfg.drop_null else data
+            filtered_labels = labels[valid_indices] if cfg.drop_null else labels
+
+            normalized_data = normalize_features(filtered_data)
+
+            data = normalized_data
+            labels = filtered_labels
+
+        except (FileNotFoundError, ValueError):
+            continue
+
+        # collect unique labels
+        if cfg.drop_null:
+            unique_labels = set(labels[labels != 0].tolist())
+        else:
+            unique_labels = set(labels.tolist())
+
+        if len(unique_labels) == 0:
+            continue
+
+        dir_info.append({
+            "dir": date_dir,
+            "data": data,
+            "labels": labels,
+            "unique_labels": unique_labels
+        })
+        
+        all_labels_set.update(unique_labels)
+
+    if len(all_labels_set) < 8:
+        raise RuntimeError(f"Only contains {len(all_labels_set)} coarse categories, "
+                           f"please check label_type and data integrity!")
+
+    # Derive target number of training directories
+    target_train_dirs = int(len(dir_info) * train_ratio)
+    
+    # Balance the number of training and test directories
+    sorted_dir_info = sorted(dir_info, key=lambda x: len(x["data"]))
+    
+    train_bins = sorted_dir_info[:target_train_dirs]
+    test_bins = sorted_dir_info[target_train_dirs:]
+
+    # Ensure training set contains all labels
+    train_label_set = set().union(*[d["unique_labels"] for d in train_bins])
+    missing_labels = all_labels_set - train_label_set
+    
+    if missing_labels:
+        # Move directories containing missing labels from test to train
+        for lbl in list(missing_labels):
+            for idx, info in enumerate(test_bins):
+                if lbl in info["unique_labels"]:
+                    train_bins.append(info)
+                    test_bins.pop(idx)
+                    break
+
+        # Re-check
+        train_label_set = set().union(*[d["unique_labels"] for d in train_bins])
+        assert all_labels_set - train_label_set == set(), \
+            "Still lack of some labels in training set after balancing!"
+
+    def _concat_recordings(bins):
+        """Concatenate data and labels from a list of bins."""
+        data_list = [b["data"] for b in bins]
+        labels_list = [b["labels"] for b in bins]
+        
+        # Connect all data and labels
+        all_data = np.concatenate(data_list, axis=0)
+        all_labels = np.concatenate(labels_list, axis=0)
+        
+        return all_data, all_labels
+
+    train_data, train_labels = _concat_recordings(train_bins)
+    test_data, test_labels = _concat_recordings(test_bins)
+
+    out_dir = Path(output_path)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Map labels to 0-indexed integers
+    # train_labels_mapped = train_labels - 1
+    # test_labels_mapped = test_labels - 1
+
+    # Here if -1 -> previous 0 become -1
+    train_labels_mapped = train_labels.copy()
+    test_labels_mapped = test_labels.copy()
+
+    # Save as NPZ files without windowing 
+    np.savez(out_dir / "shl_train.npz", 
+             data=train_data.astype(np.float32), 
+             labels=train_labels_mapped.astype(np.int16),
+             )
+    
+    np.savez(out_dir / "shl_validation.npz", 
+             data=test_data.astype(np.float32), 
+             labels=test_labels_mapped.astype(np.int16))
+    
+
+    print(f"Data saved to {out_dir}.")
+    print(f"Training set: {len(train_data)} time steps")
+    print(f"Validation set: {len(test_data)} time steps")
+    print(f"Training set directories: {len(train_bins)}")
+    print(f"Validation set directories: {len(test_bins)}")
+    print(f"Training set label set: {sorted(set(train_labels_mapped))}")
+
+
+
+
+# ----------------------------------------------------------------------------- # 
+# -------------------- Dataset for SHL Mag-Only -------------------- #
+# ----------------------------------------------------------------------------- # 
 class SHLMagDataset(Dataset):
     """
-    Lazy-loading SHL Magnetometer dataset, slicing only when __getitem__ is called.
-
+    Dataset that loads SHL data from NPZ files, extracting only magnetometer features.
+    
     Each sample:
-        X : (window_size, 12) torch.float32
-        y : int  (majority label in the window)
+        X : (window_size, features) torch.float32
+        y : int (class label)
     """
-
-    def __init__(self,
-                 cfg: SHLConfig,
-                 transform=None,
-                 mag_only: bool = True):
-        self.cfg = cfg
+    
+    def __init__(self, 
+                 npz_path: str,
+                 window_size: int = 500,
+                 overlap: float = 0.0,
+                 dtype: torch.dtype = torch.float32,
+                 transform=None):
+        """
+        Initialize the dataset from a npz file, focusing on magnetometer data.
+        
+        Parameters
+        ----------
+        npz_path: str
+            Path to the npz file
+        window_size: int
+            Size of each window segment
+        overlap: float
+            Overlap between consecutive windows (0.0 to 1.0)
+        dtype: torch.dtype
+            Data type for tensor conversion
+        transform: callable
+            Optional transform to be applied on a sample
+        """
+        data = np.load(npz_path)
+        x_full = data['data']  # (n_samples, n_features)
+        y_full = data['labels']  # (n_samples,)
+        
+        # Extract only magnetometer columns (3 axes × 4 positions = 12 features)
+        mag_indices = []
+        for pos_idx in range(4):  # 4 positions
+            base_idx = pos_idx * 9  # 9 features per position
+            mag_start = base_idx + 6  # Magnetometer starts at index 6 (0-indexed)
+            mag_indices.extend([mag_start, mag_start + 1, mag_start + 2])
+        
+        # Extract magnetometer data
+        x_mag = x_full[:, mag_indices]
+        
+        # 计算窗口步长和数量（矢量化分窗）
+        step = int(window_size * (1 - overlap))
+        n_samples, n_features = x_mag.shape
+        n_windows = (n_samples - window_size) // step + 1
+        
+        if n_windows <= 0:
+            raise ValueError(f"Window size {window_size} is too large for data with {n_samples} samples")
+        
+        # 创建窗口索引
+        indices = np.arange(window_size)[None, :] + step * np.arange(n_windows)[:, None]
+        
+        # 矢量化分窗
+        self.x = np.zeros((n_windows, window_size, n_features), dtype=np.float32)
+        for i in range(n_features):
+            self.x[:, :, i] = x_mag[indices, i]
+        
+        # 对应窗口的标签
+        self.y = y_full[indices[:, 0]]
+        
+        self.dtype = dtype
         self.transform = transform
-        self.mag_only = mag_only
-
-        self.chunks: List[Dict] = []        # Each recording's {"data":ndarray, "label":ndarray}
-        self.index_map: List[Tuple[int, int]] = []  # (chunk_idx, start_idx)
-
-        self._build_index()
-
-
-    def _iter_date_dirs(self) -> List[Path]:
-        """Recursively scan all date directories containing *_Motion.txt files."""
-        import glob
-        dirs = set()
-        for ver in self.cfg.versions:
-            for user in (self.cfg.users if self.cfg.users else ["*"]):
-                pattern = str(self.cfg.root / ver / user / "*" / "*_Motion.txt")
-                for p in glob.glob(pattern):
-                    dirs.add(Path(p).parent)
-        return sorted(dirs)
-
-    def _build_index(self):
-        """Read all recordings and generate indices."""
-        date_dirs = self._iter_date_dirs()
-        for date_dir in tqdm(date_dirs, desc="Loading data directories"):
-            try:
-                data, label = load_recording(
-                    date_dir,
-                    self.cfg.positions,
-                    label_type=self.cfg.label_type
-                )
-            except (FileNotFoundError, ValueError):
-                # Print warning if needed
-                continue
-
-            chunk_idx = len(self.chunks)
-            self.chunks.append({"data": data, "label": label})
-
-            # Generate window indices with overlap support
-            window_indices = slice_index(
-                    total_len=data.shape[0],
-                    window=self.cfg.window_size,
-                    step=self.cfg.step_size,
-                    overlap=self.cfg.overlap)
-            
-            for start in tqdm(window_indices, desc=f"Processing windows for {date_dir.name}", leave=False):
-                # Null label filtering
-                if self.cfg.drop_null:
-                    window_labels = label[start:start + self.cfg.window_size]
-                    if np.all(window_labels == 0):
-                        continue
-                self.index_map.append((chunk_idx, start))
-
-
+        
     def __len__(self):
-        return len(self.index_map)
-
-    def __getitem__(self, idx: int):
-        chunk_idx, start = self.index_map[idx]
-        chunk = self.chunks[chunk_idx]
-        x_np = chunk["data"][start:start + self.cfg.window_size]         # (W, 12)
-        y_np = chunk["label"][start:start + self.cfg.window_size]
-
-        # Multiple labels → take mode; if Null exists, keep non-Null mode, otherwise 0
-        if self.cfg.drop_null:
-            y_non_zero = y_np[y_np != 0]
-            y_scalar = int(np.bincount(y_non_zero).argmax()) if y_non_zero.size else 0
-        else:
-            y_scalar = int(np.bincount(y_np).argmax())
-
-        x = torch.as_tensor(x_np, dtype=self.cfg.dtype)
-        y = torch.as_tensor(y_scalar, dtype=torch.long)
-
+        return len(self.y)
+    
+    def __getitem__(self, idx):
+        x = torch.as_tensor(self.x[idx], dtype=self.dtype)
+        y = torch.as_tensor(self.y[idx], dtype=torch.long)
+        
         if self.transform:
             x = self.transform(x)
-
+            
         return x, y
 
-def get_dataloader(npz_path: str,
-                  batch_size: int = 32,
-                  shuffle: bool = True,
-                  num_workers: int = 4,
-                  dtype: torch.dtype = torch.float32,
-                  transform=None) -> DataLoader:
+
+# ----------------------------------------------------------------------------- # 
+# -------------------- Dataset for SHL NPZ files -------------------- #
+# ----------------------------------------------------------------------------- #
+class SHLNpzDataset(Dataset):
+    """
+    Dataset that loads preprocessed NPZ files containing SHL sensor data.
+    
+    Each sample:
+        X : (window_size, features) torch.float32
+        y : int (class label)
+    """
+    
+    def __init__(self, 
+                 npz_path: str,
+                 window_size: int = 500,
+                 overlap: float = 0.0,
+                 dtype: torch.dtype = torch.float32,
+                 transform=None):
+        """
+        Initialize the dataset from a npz file.
+        
+        Parameters
+        ----------
+        npz_path: str
+            Path to the npz file
+        window_size: int
+            Size of each window segment
+        overlap: float
+            Overlap between consecutive windows (0.0 to 1.0)
+        dtype: torch.dtype
+            Data type for tensor conversion
+        transform: callable
+            Optional transform to be applied on a sample
+        """
+        data = np.load(npz_path)
+        x_data = data['data']  # (n_samples, n_features)
+        y_data = data['labels']  # (n_samples,)
+        
+        # 计算窗口步长和数量（矢量化分窗）
+        step = int(window_size * (1 - overlap))
+        n_samples, n_features = x_data.shape
+        n_windows = (n_samples - window_size) // step + 1
+        
+        if n_windows <= 0:
+            raise ValueError(f"Window size {window_size} is too large for data with {n_samples} samples")
+        
+        # 创建窗口索引
+        indices = np.arange(window_size)[None, :] + step * np.arange(n_windows)[:, None]
+        
+        # 矢量化分窗
+        self.x = np.zeros((n_windows, window_size, n_features), dtype=np.float32)
+        for i in range(n_features):
+            self.x[:, :, i] = x_data[indices, i]
+        
+        # 对应窗口的标签
+        self.y = y_data[indices[:, 0]]
+        
+        self.dtype = dtype
+        self.transform = transform
+        
+    def __len__(self):
+        return len(self.y)
+    
+    def __getitem__(self, idx):
+        x = torch.as_tensor(self.x[idx], dtype=self.dtype)
+        y = torch.as_tensor(self.y[idx], dtype=torch.long)
+        
+        if self.transform:
+            x = self.transform(x)
+            
+        return x, y
+
+
+def get_mag_dataloader(npz_path: str,
+                      batch_size: int = 32,
+                      shuffle: bool = True,
+                      num_workers: int = 4,
+                      window_size: int = 500,
+                      overlap: float = 0.0,
+                      dtype: torch.dtype = torch.float32,
+                      transform=None) -> DataLoader:
     """
     Convenience function to construct DataLoader from npz file, focusing on magnetometer data.
     
@@ -361,49 +465,19 @@ def get_dataloader(npz_path: str,
     batch_size : Batch size
     shuffle : Whether to shuffle (only for training)
     num_workers : Number of PyTorch DataLoader workers
+    window_size : Size of each window segment
+    overlap : Overlap between consecutive windows
     dtype : Data type for tensor conversion
     transform : Optional data augmentation function
     
     Returns
     -------
-    DataLoader : PyTorch DataLoader with samples shaped (batch, 12, window_size)
-                where 12 represents magnetometer data from 4 positions × 3 axes
+    DataLoader : PyTorch DataLoader with samples shaped (batch, features, window_size)
     """
-    class SHLMagNpzDataset(Dataset):
-        """Dataset that extracts only magnetometer data from npz files"""
-        
-        def __init__(self, npz_path, dtype=torch.float32, transform=None):
-            data = np.load(npz_path)
-            self.x_full = data['x']  # (n_samples, n_features, window_size)
-            self.y = data['y']  # (n_samples,)
-            
-            # Extract only magnetometer columns (3 axes × 4 positions = 12 features)
-            # For each position (Hand, Bag, Hips, Torso), extract columns 7,8,9 (mag data)
-            mag_indices = []
-            for pos_idx in range(4):  # 4 positions
-                base_idx = pos_idx * 9  # 9 features per position (acc, gyro, mag)
-                mag_start = base_idx + 6  # Magnetometer starts at index 6 (0-indexed)
-                mag_indices.extend([mag_start, mag_start + 1, mag_start + 2])
-            
-            self.x = self.x_full[:, mag_indices, :]  # Only keep magnetometer data
-            self.dtype = dtype
-            self.transform = transform
-        
-        def __len__(self):
-            return len(self.y)
-        
-        def __getitem__(self, idx):
-            x = torch.as_tensor(self.x[idx], dtype=self.dtype)
-            y = torch.as_tensor(self.y[idx] - 1, dtype=torch.long)
-            
-            if self.transform:
-                x = self.transform(x)
-                
-            return x, y
-    
-    # Create dataset and dataloader
-    dataset = SHLMagNpzDataset(
+    dataset = SHLMagDataset(
         npz_path=npz_path,
+        window_size=window_size,
+        overlap=overlap,
         dtype=dtype,
         transform=transform
     )
@@ -416,22 +490,36 @@ def get_dataloader(npz_path: str,
         pin_memory=True
     )
 
+class TransformDataset(Dataset):
+    def __init__(self, dataset, transform):
+        self.dataset = dataset
+        self.transform = transform
+        
+    def __len__(self):
+        return len(self.dataset)
+        
+    def __getitem__(self, idx):
+        x, y = self.dataset[idx]
+        return self.transform(x), y
 
 
 
-
-
+# ----------------------------------------------------------------------------- # 
+# -------------------- Dataset for SHL NPZ files -------------------- #
+# ----------------------------------------------------------------------------- #
 class SHLNpzDataset(Dataset):
     """
     Dataset that loads preprocessed NPZ files containing SHL sensor data.
     
     Each sample:
-        X : (features, window_size) torch.float32
+        X : (window_size, features) torch.float32
         y : int (class label)
     """
     
     def __init__(self, 
                  npz_path: str,
+                 window_size: int = 500,
+                 overlap: float = 0.0,
                  dtype: torch.dtype = torch.float32,
                  transform=None):
         """
@@ -441,14 +529,38 @@ class SHLNpzDataset(Dataset):
         ----------
         npz_path: str
             Path to the npz file
+        window_size: int
+            Size of each window segment
+        overlap: float
+            Overlap between consecutive windows (0.0 to 1.0)
         dtype: torch.dtype
             Data type for tensor conversion
         transform: callable
             Optional transform to be applied on a sample
         """
         data = np.load(npz_path)
-        self.x = data['x']  # (n_samples, n_features, window_size)
-        self.y = data['y']  # (n_samples,)
+        x_data = data['data']  # (n_samples, n_features)
+        y_data = data['labels']  # (n_samples,)
+        
+        # 计算窗口步长和数量（矢量化分窗）
+        step = int(window_size * (1 - overlap))
+        n_samples, n_features = x_data.shape
+        n_windows = (n_samples - window_size) // step + 1
+        
+        if n_windows <= 0:
+            raise ValueError(f"Window size {window_size} is too large for data with {n_samples} samples")
+        
+        # 创建窗口索引
+        indices = np.arange(window_size)[None, :] + step * np.arange(n_windows)[:, None]
+        
+        # 矢量化分窗
+        self.x = np.zeros((n_windows, window_size, n_features), dtype=np.float32)
+        for i in range(n_features):
+            self.x[:, :, i] = x_data[indices, i]
+        
+        # 对应窗口的标签
+        self.y = y_data[indices[:, 0]]
+        
         self.dtype = dtype
         self.transform = transform
         
@@ -457,7 +569,7 @@ class SHLNpzDataset(Dataset):
     
     def __getitem__(self, idx):
         x = torch.as_tensor(self.x[idx], dtype=self.dtype)
-        y = torch.as_tensor(self.y[idx] - 1, dtype=torch.long)
+        y = torch.as_tensor(self.y[idx], dtype=torch.long)
         
         if self.transform:
             x = self.transform(x)
@@ -469,6 +581,8 @@ def get_npz_dataloader(npz_path: str,
                        batch_size: int = 32,
                        shuffle: bool = True,
                        num_workers: int = 4,
+                       window_size: int = 500,
+                       overlap: float = 0.0,
                        dtype: torch.dtype = torch.float32,
                        transform=None) -> DataLoader:
     """
@@ -484,6 +598,10 @@ def get_npz_dataloader(npz_path: str,
         Whether to shuffle the data
     num_workers: int
         Number of worker processes
+    window_size: int
+        Size of each window segment
+    overlap: float
+        Overlap between consecutive windows
     dtype: torch.dtype
         Data type for tensor conversion
     transform: callable
@@ -491,6 +609,8 @@ def get_npz_dataloader(npz_path: str,
     """
     dataset = SHLNpzDataset(
         npz_path=npz_path,
+        window_size=window_size,
+        overlap=overlap,
         dtype=dtype,
         transform=transform
     )
@@ -507,15 +627,15 @@ if __name__ == "__main__":
     # Define the configuration
     cfg = SHLConfig(
         root=Path("/Users/xiangyifei/Documents/HPC_Efficient_Computing_System/dataset/SHL"),
-        window_size=300,
-        overlap=0.3
+        window_size=500,
+        overlap=0.0
         )
     
     # process and save the dataset
     process_and_save_dataset(
         cfg=cfg,
         output_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data",
-        train_ratio=0.8
+        train_ratio=0.7
     )
     
     # load the dataset using DataLoader
@@ -525,15 +645,19 @@ if __name__ == "__main__":
         shuffle=True
     )
 
-    
-    # test_loader = get_npz_dataloader(
-    #     npz_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/shl_test.npz",
-    #     batch_size=32,
-    #     shuffle=False
-    # )
+
+    test_loader = get_npz_dataloader(
+        npz_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/shl_validation.npz",
+        batch_size=1024,
+        shuffle=False
+    )
     
     # debug
-    x, y = next(iter(train_loader))
-    print("Training batch shape:", x.shape)  #  (batch_size, features, window_size)
-    print("Training batch y shape:", y.shape)  #  (batch_size,)
-    print("Labels:", y.unique())
+    x_train, y_train = next(iter(train_loader))
+    print("Training batch shape:", x_train.shape)  #  (batch_size, features, window_size)
+    print("Training batch y shape:", y_train.shape)  #  (batch_size,)
+    print("Train Labels:", y_train.unique())
+    x_test, y_test = next(iter(test_loader))
+    print("Test batch shape:", x_test.shape)  #  (batch_size, features, window_size)
+    print("Test batch y shape:", y_test.shape)  #  (batch_size,)
+    print("Test Labels:", y_test.unique())

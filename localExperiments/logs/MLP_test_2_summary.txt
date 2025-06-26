@@ -1,4 +1,0 @@
-Train completed at: 2025-06-24 21:49:26.984399
-Best validation accuracy: 98.44%
-Model saved at: localExperiments/model_result/checkpoints/MLP_test_2_best.pth
-Configuration: {'name': 'MLP', 'model_name': 'MLP_test_2', 'dataLoader': 'get_dataloader', 'input_size': 3600, 'lr': 0.001, 'batch_size': 1024, 'criterion': 'CrossEntropyLoss', 'optimizer': 'Adam', 'epochs': 100, 'dropout': 0.2}

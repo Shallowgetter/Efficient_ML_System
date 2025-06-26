@@ -2,7 +2,7 @@ model:
  - name: MLP
    model_name: MLP_test_1 # This is the name of the model, not the type of model
    dataLoader: 'get_npz_dataloader'
-   input_size: 10800
+   input_size: 18000 # 300*36 -> 500*36
    lr: 0.001
    batch_size: 1024
    criterion: 'CrossEntropyLoss'
@@ -12,10 +12,23 @@ model:
 
  - name: MLP
    model_name: MLP_test_2
-   dataLoader: 'get_dataloader'
-   input_size: 3600
+   dataLoader: 'get_mag_dataloader'
+   input_size: 6000 # 300*12 -> 500*12
    lr: 0.001
    batch_size: 1024
+   criterion: 'CrossEntropyLoss'
+   optimizer: 'Adam'
+   epochs: 100
+   dropout: 0.2
+
+ - name: CNN
+   model_name: CNN_test_1
+   dataLoader: 'get_npz_dataloader'
+   num_elements: 36
+   window_size: 500
+   num_classes: 8
+   lr: 0.001
+   batch_size: 512
    criterion: 'CrossEntropyLoss'
    optimizer: 'Adam'
    epochs: 100

@@ -1,0 +1,425 @@
+[2025-06-26 14:52:05][mlp_test.py:98][INFO] Starting training for MLP_test_1
+[2025-06-26 14:52:05][mlp_test.py:99][INFO] Configuration: {'name': 'MLP', 'model_name': 'MLP_test_1', 'dataLoader': 'get_npz_dataloader', 'input_size': 18000, 'lr': 0.001, 'batch_size': 1024, 'criterion': 'CrossEntropyLoss', 'optimizer': 'Adam', 'epochs': 100, 'dropout': 0.2}
+[2025-06-26 14:52:12][mlp_test.py:123][INFO] Train loaded: 25 batches
+[2025-06-26 14:52:12][mlp_test.py:124][INFO] Validation loaded: 16 batches
+[2025-06-26 14:52:12][mlp_test.py:128][INFO] Model architecture:
+MLP(
+  (classifier): Sequential(
+    (0): Linear(in_features=18000, out_features=128, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.2, inplace=False)
+    (3): Linear(in_features=128, out_features=256, bias=True)
+    (4): ReLU()
+    (5): Dropout(p=0.2, inplace=False)
+    (6): Linear(in_features=256, out_features=512, bias=True)
+    (7): ReLU()
+    (8): Dropout(p=0.2, inplace=False)
+    (9): Linear(in_features=512, out_features=1024, bias=True)
+    (10): ReLU()
+    (11): Dropout(p=0.2, inplace=False)
+    (12): Linear(in_features=1024, out_features=8, bias=True)
+  )
+)
+[2025-06-26 14:52:12][mlp_test.py:132][INFO] Using device: cpu
+[2025-06-26 14:52:12][mlp_test.py:140][INFO] Train dataset has 25 batches with batch size 1024
+[2025-06-26 14:52:12][mlp_test.py:144][INFO] Epoch 1/100
+[2025-06-26 14:52:12][mlp_test.py:166][INFO] Epoch 1, Step 0, Batch count: 1, Loss: 2.0704
+[2025-06-26 14:52:13][mlp_test.py:168][INFO] Epoch 1 had 25 batches
+[2025-06-26 14:52:13][mlp_test.py:172][INFO] Epoch 1 completed. Train Loss: 0.8640, Val Loss: 3.4676, Val Accuracy: 31.80%
+[2025-06-26 14:52:13][mlp_test.py:144][INFO] Epoch 2/100
+[2025-06-26 14:52:13][mlp_test.py:166][INFO] Epoch 2, Step 0, Batch count: 1, Loss: 0.3052
+[2025-06-26 14:52:14][mlp_test.py:168][INFO] Epoch 2 had 25 batches
+[2025-06-26 14:52:14][mlp_test.py:172][INFO] Epoch 2 completed. Train Loss: 0.2601, Val Loss: 3.5274, Val Accuracy: 33.37%
+[2025-06-26 14:52:14][mlp_test.py:144][INFO] Epoch 3/100
+[2025-06-26 14:52:14][mlp_test.py:166][INFO] Epoch 3, Step 0, Batch count: 1, Loss: 0.1856
+[2025-06-26 14:52:15][mlp_test.py:168][INFO] Epoch 3 had 25 batches
+[2025-06-26 14:52:15][mlp_test.py:172][INFO] Epoch 3 completed. Train Loss: 0.1638, Val Loss: 3.8523, Val Accuracy: 31.95%
+[2025-06-26 14:52:15][mlp_test.py:144][INFO] Epoch 4/100
+[2025-06-26 14:52:15][mlp_test.py:166][INFO] Epoch 4, Step 0, Batch count: 1, Loss: 0.1263
+[2025-06-26 14:52:16][mlp_test.py:168][INFO] Epoch 4 had 25 batches
+[2025-06-26 14:52:16][mlp_test.py:172][INFO] Epoch 4 completed. Train Loss: 0.1252, Val Loss: 4.0903, Val Accuracy: 31.74%
+[2025-06-26 14:52:16][mlp_test.py:144][INFO] Epoch 5/100
+[2025-06-26 14:52:16][mlp_test.py:166][INFO] Epoch 5, Step 0, Batch count: 1, Loss: 0.0934
+[2025-06-26 14:52:17][mlp_test.py:168][INFO] Epoch 5 had 25 batches
+[2025-06-26 14:52:17][mlp_test.py:172][INFO] Epoch 5 completed. Train Loss: 0.1036, Val Loss: 3.8256, Val Accuracy: 31.48%
+[2025-06-26 14:52:17][mlp_test.py:144][INFO] Epoch 6/100
+[2025-06-26 14:52:17][mlp_test.py:166][INFO] Epoch 6, Step 0, Batch count: 1, Loss: 0.0731
+[2025-06-26 14:52:18][mlp_test.py:168][INFO] Epoch 6 had 25 batches
+[2025-06-26 14:52:18][mlp_test.py:172][INFO] Epoch 6 completed. Train Loss: 0.0907, Val Loss: 4.2539, Val Accuracy: 31.75%
+[2025-06-26 14:52:18][mlp_test.py:144][INFO] Epoch 7/100
+[2025-06-26 14:52:18][mlp_test.py:166][INFO] Epoch 7, Step 0, Batch count: 1, Loss: 0.0759
+[2025-06-26 14:52:19][mlp_test.py:168][INFO] Epoch 7 had 25 batches
+[2025-06-26 14:52:19][mlp_test.py:172][INFO] Epoch 7 completed. Train Loss: 0.0798, Val Loss: 4.1282, Val Accuracy: 29.48%
+[2025-06-26 14:52:19][mlp_test.py:144][INFO] Epoch 8/100
+[2025-06-26 14:52:19][mlp_test.py:166][INFO] Epoch 8, Step 0, Batch count: 1, Loss: 0.0681
+[2025-06-26 14:52:20][mlp_test.py:168][INFO] Epoch 8 had 25 batches
+[2025-06-26 14:52:20][mlp_test.py:172][INFO] Epoch 8 completed. Train Loss: 0.0680, Val Loss: 4.3081, Val Accuracy: 30.12%
+[2025-06-26 14:52:20][mlp_test.py:144][INFO] Epoch 9/100
+[2025-06-26 14:52:20][mlp_test.py:166][INFO] Epoch 9, Step 0, Batch count: 1, Loss: 0.0347
+[2025-06-26 14:52:21][mlp_test.py:168][INFO] Epoch 9 had 25 batches
+[2025-06-26 14:52:21][mlp_test.py:172][INFO] Epoch 9 completed. Train Loss: 0.0658, Val Loss: 4.1396, Val Accuracy: 32.32%
+[2025-06-26 14:52:21][mlp_test.py:144][INFO] Epoch 10/100
+[2025-06-26 14:52:21][mlp_test.py:166][INFO] Epoch 10, Step 0, Batch count: 1, Loss: 0.0696
+[2025-06-26 14:52:22][mlp_test.py:168][INFO] Epoch 10 had 25 batches
+[2025-06-26 14:52:22][mlp_test.py:172][INFO] Epoch 10 completed. Train Loss: 0.0630, Val Loss: 4.4834, Val Accuracy: 28.74%
+[2025-06-26 14:52:22][mlp_test.py:144][INFO] Epoch 11/100
+[2025-06-26 14:52:22][mlp_test.py:166][INFO] Epoch 11, Step 0, Batch count: 1, Loss: 0.0641
+[2025-06-26 14:52:23][mlp_test.py:168][INFO] Epoch 11 had 25 batches
+[2025-06-26 14:52:23][mlp_test.py:172][INFO] Epoch 11 completed. Train Loss: 0.0492, Val Loss: 4.4357, Val Accuracy: 32.22%
+[2025-06-26 14:52:23][mlp_test.py:144][INFO] Epoch 12/100
+[2025-06-26 14:52:23][mlp_test.py:166][INFO] Epoch 12, Step 0, Batch count: 1, Loss: 0.0367
+[2025-06-26 14:52:24][mlp_test.py:168][INFO] Epoch 12 had 25 batches
+[2025-06-26 14:52:24][mlp_test.py:172][INFO] Epoch 12 completed. Train Loss: 0.0502, Val Loss: 4.8708, Val Accuracy: 31.89%
+[2025-06-26 14:52:24][mlp_test.py:144][INFO] Epoch 13/100
+[2025-06-26 14:52:24][mlp_test.py:166][INFO] Epoch 13, Step 0, Batch count: 1, Loss: 0.0447
+[2025-06-26 14:52:25][mlp_test.py:168][INFO] Epoch 13 had 25 batches
+[2025-06-26 14:52:25][mlp_test.py:172][INFO] Epoch 13 completed. Train Loss: 0.0438, Val Loss: 4.6136, Val Accuracy: 32.62%
+[2025-06-26 14:52:25][mlp_test.py:144][INFO] Epoch 14/100
+[2025-06-26 14:52:25][mlp_test.py:166][INFO] Epoch 14, Step 0, Batch count: 1, Loss: 0.0374
+[2025-06-26 14:52:26][mlp_test.py:168][INFO] Epoch 14 had 25 batches
+[2025-06-26 14:52:26][mlp_test.py:172][INFO] Epoch 14 completed. Train Loss: 0.0445, Val Loss: 4.5631, Val Accuracy: 31.72%
+[2025-06-26 14:52:26][mlp_test.py:144][INFO] Epoch 15/100
+[2025-06-26 14:52:26][mlp_test.py:166][INFO] Epoch 15, Step 0, Batch count: 1, Loss: 0.0398
+[2025-06-26 14:52:27][mlp_test.py:168][INFO] Epoch 15 had 25 batches
+[2025-06-26 14:52:27][mlp_test.py:172][INFO] Epoch 15 completed. Train Loss: 0.0397, Val Loss: 4.7150, Val Accuracy: 31.28%
+[2025-06-26 14:52:27][mlp_test.py:144][INFO] Epoch 16/100
+[2025-06-26 14:52:27][mlp_test.py:166][INFO] Epoch 16, Step 0, Batch count: 1, Loss: 0.0345
+[2025-06-26 14:52:28][mlp_test.py:168][INFO] Epoch 16 had 25 batches
+[2025-06-26 14:52:28][mlp_test.py:172][INFO] Epoch 16 completed. Train Loss: 0.0388, Val Loss: 5.1056, Val Accuracy: 29.85%
+[2025-06-26 14:52:28][mlp_test.py:144][INFO] Epoch 17/100
+[2025-06-26 14:52:28][mlp_test.py:166][INFO] Epoch 17, Step 0, Batch count: 1, Loss: 0.0414
+[2025-06-26 14:52:29][mlp_test.py:168][INFO] Epoch 17 had 25 batches
+[2025-06-26 14:52:29][mlp_test.py:172][INFO] Epoch 17 completed. Train Loss: 0.0378, Val Loss: 5.0526, Val Accuracy: 28.30%
+[2025-06-26 14:52:29][mlp_test.py:144][INFO] Epoch 18/100
+[2025-06-26 14:52:29][mlp_test.py:166][INFO] Epoch 18, Step 0, Batch count: 1, Loss: 0.0233
+[2025-06-26 14:52:30][mlp_test.py:168][INFO] Epoch 18 had 25 batches
+[2025-06-26 14:52:30][mlp_test.py:172][INFO] Epoch 18 completed. Train Loss: 0.0412, Val Loss: 4.7998, Val Accuracy: 29.21%
+[2025-06-26 14:52:30][mlp_test.py:144][INFO] Epoch 19/100
+[2025-06-26 14:52:30][mlp_test.py:166][INFO] Epoch 19, Step 0, Batch count: 1, Loss: 0.0396
+[2025-06-26 14:52:31][mlp_test.py:168][INFO] Epoch 19 had 25 batches
+[2025-06-26 14:52:31][mlp_test.py:172][INFO] Epoch 19 completed. Train Loss: 0.0360, Val Loss: 4.9002, Val Accuracy: 29.95%
+[2025-06-26 14:52:31][mlp_test.py:144][INFO] Epoch 20/100
+[2025-06-26 14:52:31][mlp_test.py:166][INFO] Epoch 20, Step 0, Batch count: 1, Loss: 0.0451
+[2025-06-26 14:52:32][mlp_test.py:168][INFO] Epoch 20 had 25 batches
+[2025-06-26 14:52:32][mlp_test.py:172][INFO] Epoch 20 completed. Train Loss: 0.0305, Val Loss: 4.8363, Val Accuracy: 33.00%
+[2025-06-26 14:52:32][mlp_test.py:144][INFO] Epoch 21/100
+[2025-06-26 14:52:32][mlp_test.py:166][INFO] Epoch 21, Step 0, Batch count: 1, Loss: 0.0229
+[2025-06-26 14:52:33][mlp_test.py:168][INFO] Epoch 21 had 25 batches
+[2025-06-26 14:52:33][mlp_test.py:172][INFO] Epoch 21 completed. Train Loss: 0.0308, Val Loss: 5.1618, Val Accuracy: 30.45%
+[2025-06-26 14:52:33][mlp_test.py:144][INFO] Epoch 22/100
+[2025-06-26 14:52:33][mlp_test.py:166][INFO] Epoch 22, Step 0, Batch count: 1, Loss: 0.0196
+[2025-06-26 14:52:34][mlp_test.py:168][INFO] Epoch 22 had 25 batches
+[2025-06-26 14:52:34][mlp_test.py:172][INFO] Epoch 22 completed. Train Loss: 0.0321, Val Loss: 4.6440, Val Accuracy: 33.48%
+[2025-06-26 14:52:34][mlp_test.py:144][INFO] Epoch 23/100
+[2025-06-26 14:52:34][mlp_test.py:166][INFO] Epoch 23, Step 0, Batch count: 1, Loss: 0.0349
+[2025-06-26 14:52:35][mlp_test.py:168][INFO] Epoch 23 had 25 batches
+[2025-06-26 14:52:35][mlp_test.py:172][INFO] Epoch 23 completed. Train Loss: 0.0316, Val Loss: 4.7280, Val Accuracy: 31.58%
+[2025-06-26 14:52:35][mlp_test.py:144][INFO] Epoch 24/100
+[2025-06-26 14:52:35][mlp_test.py:166][INFO] Epoch 24, Step 0, Batch count: 1, Loss: 0.0302
+[2025-06-26 14:52:36][mlp_test.py:168][INFO] Epoch 24 had 25 batches
+[2025-06-26 14:52:36][mlp_test.py:172][INFO] Epoch 24 completed. Train Loss: 0.0308, Val Loss: 5.2540, Val Accuracy: 31.53%
+[2025-06-26 14:52:36][mlp_test.py:144][INFO] Epoch 25/100
+[2025-06-26 14:52:36][mlp_test.py:166][INFO] Epoch 25, Step 0, Batch count: 1, Loss: 0.0292
+[2025-06-26 14:52:37][mlp_test.py:168][INFO] Epoch 25 had 25 batches
+[2025-06-26 14:52:37][mlp_test.py:172][INFO] Epoch 25 completed. Train Loss: 0.0238, Val Loss: 4.9987, Val Accuracy: 32.35%
+[2025-06-26 14:52:37][mlp_test.py:144][INFO] Epoch 26/100
+[2025-06-26 14:52:37][mlp_test.py:166][INFO] Epoch 26, Step 0, Batch count: 1, Loss: 0.0299
+[2025-06-26 14:52:38][mlp_test.py:168][INFO] Epoch 26 had 25 batches
+[2025-06-26 14:52:38][mlp_test.py:172][INFO] Epoch 26 completed. Train Loss: 0.0294, Val Loss: 4.7425, Val Accuracy: 32.09%
+[2025-06-26 14:52:38][mlp_test.py:144][INFO] Epoch 27/100
+[2025-06-26 14:52:38][mlp_test.py:166][INFO] Epoch 27, Step 0, Batch count: 1, Loss: 0.0293
+[2025-06-26 14:52:39][mlp_test.py:168][INFO] Epoch 27 had 25 batches
+[2025-06-26 14:52:39][mlp_test.py:172][INFO] Epoch 27 completed. Train Loss: 0.0274, Val Loss: 5.1170, Val Accuracy: 28.52%
+[2025-06-26 14:52:39][mlp_test.py:144][INFO] Epoch 28/100
+[2025-06-26 14:52:39][mlp_test.py:166][INFO] Epoch 28, Step 0, Batch count: 1, Loss: 0.0323
+[2025-06-26 14:52:40][mlp_test.py:168][INFO] Epoch 28 had 25 batches
+[2025-06-26 14:52:40][mlp_test.py:172][INFO] Epoch 28 completed. Train Loss: 0.0252, Val Loss: 4.9659, Val Accuracy: 30.68%
+[2025-06-26 14:52:40][mlp_test.py:144][INFO] Epoch 29/100
+[2025-06-26 14:52:40][mlp_test.py:166][INFO] Epoch 29, Step 0, Batch count: 1, Loss: 0.0161
+[2025-06-26 14:52:41][mlp_test.py:168][INFO] Epoch 29 had 25 batches
+[2025-06-26 14:52:41][mlp_test.py:172][INFO] Epoch 29 completed. Train Loss: 0.0197, Val Loss: 5.1121, Val Accuracy: 32.42%
+[2025-06-26 14:52:41][mlp_test.py:144][INFO] Epoch 30/100
+[2025-06-26 14:52:41][mlp_test.py:166][INFO] Epoch 30, Step 0, Batch count: 1, Loss: 0.0148
+[2025-06-26 14:52:42][mlp_test.py:168][INFO] Epoch 30 had 25 batches
+[2025-06-26 14:52:42][mlp_test.py:172][INFO] Epoch 30 completed. Train Loss: 0.0240, Val Loss: 4.7880, Val Accuracy: 34.02%
+[2025-06-26 14:52:42][mlp_test.py:144][INFO] Epoch 31/100
+[2025-06-26 14:52:42][mlp_test.py:166][INFO] Epoch 31, Step 0, Batch count: 1, Loss: 0.0135
+[2025-06-26 14:52:43][mlp_test.py:168][INFO] Epoch 31 had 25 batches
+[2025-06-26 14:52:43][mlp_test.py:172][INFO] Epoch 31 completed. Train Loss: 0.0258, Val Loss: 5.1542, Val Accuracy: 29.36%
+[2025-06-26 14:52:43][mlp_test.py:144][INFO] Epoch 32/100
+[2025-06-26 14:52:43][mlp_test.py:166][INFO] Epoch 32, Step 0, Batch count: 1, Loss: 0.0324
+[2025-06-26 14:52:44][mlp_test.py:168][INFO] Epoch 32 had 25 batches
+[2025-06-26 14:52:44][mlp_test.py:172][INFO] Epoch 32 completed. Train Loss: 0.0253, Val Loss: 4.4524, Val Accuracy: 33.64%
+[2025-06-26 14:52:44][mlp_test.py:144][INFO] Epoch 33/100
+[2025-06-26 14:52:44][mlp_test.py:166][INFO] Epoch 33, Step 0, Batch count: 1, Loss: 0.0229
+[2025-06-26 14:52:45][mlp_test.py:168][INFO] Epoch 33 had 25 batches
+[2025-06-26 14:52:45][mlp_test.py:172][INFO] Epoch 33 completed. Train Loss: 0.0219, Val Loss: 5.1004, Val Accuracy: 30.99%
+[2025-06-26 14:52:45][mlp_test.py:144][INFO] Epoch 34/100
+[2025-06-26 14:52:45][mlp_test.py:166][INFO] Epoch 34, Step 0, Batch count: 1, Loss: 0.0177
+[2025-06-26 14:52:46][mlp_test.py:168][INFO] Epoch 34 had 25 batches
+[2025-06-26 14:52:47][mlp_test.py:172][INFO] Epoch 34 completed. Train Loss: 0.0240, Val Loss: 5.3332, Val Accuracy: 31.47%
+[2025-06-26 14:52:47][mlp_test.py:144][INFO] Epoch 35/100
+[2025-06-26 14:52:47][mlp_test.py:166][INFO] Epoch 35, Step 0, Batch count: 1, Loss: 0.0131
+[2025-06-26 14:52:48][mlp_test.py:168][INFO] Epoch 35 had 25 batches
+[2025-06-26 14:52:48][mlp_test.py:172][INFO] Epoch 35 completed. Train Loss: 0.0211, Val Loss: 5.4533, Val Accuracy: 31.38%
+[2025-06-26 14:52:48][mlp_test.py:144][INFO] Epoch 36/100
+[2025-06-26 14:52:48][mlp_test.py:166][INFO] Epoch 36, Step 0, Batch count: 1, Loss: 0.0145
+[2025-06-26 14:52:49][mlp_test.py:168][INFO] Epoch 36 had 25 batches
+[2025-06-26 14:52:49][mlp_test.py:172][INFO] Epoch 36 completed. Train Loss: 0.0187, Val Loss: 5.4177, Val Accuracy: 33.10%
+[2025-06-26 14:52:49][mlp_test.py:144][INFO] Epoch 37/100
+[2025-06-26 14:52:49][mlp_test.py:166][INFO] Epoch 37, Step 0, Batch count: 1, Loss: 0.0185
+[2025-06-26 14:52:50][mlp_test.py:168][INFO] Epoch 37 had 25 batches
+[2025-06-26 14:52:50][mlp_test.py:172][INFO] Epoch 37 completed. Train Loss: 0.0228, Val Loss: 4.9151, Val Accuracy: 32.25%
+[2025-06-26 14:52:50][mlp_test.py:144][INFO] Epoch 38/100
+[2025-06-26 14:52:50][mlp_test.py:166][INFO] Epoch 38, Step 0, Batch count: 1, Loss: 0.0110
+[2025-06-26 14:52:51][mlp_test.py:168][INFO] Epoch 38 had 25 batches
+[2025-06-26 14:52:51][mlp_test.py:172][INFO] Epoch 38 completed. Train Loss: 0.0221, Val Loss: 5.1732, Val Accuracy: 30.93%
+[2025-06-26 14:52:51][mlp_test.py:144][INFO] Epoch 39/100
+[2025-06-26 14:52:51][mlp_test.py:166][INFO] Epoch 39, Step 0, Batch count: 1, Loss: 0.0183
+[2025-06-26 14:52:52][mlp_test.py:168][INFO] Epoch 39 had 25 batches
+[2025-06-26 14:52:52][mlp_test.py:172][INFO] Epoch 39 completed. Train Loss: 0.0211, Val Loss: 4.9894, Val Accuracy: 33.03%
+[2025-06-26 14:52:52][mlp_test.py:144][INFO] Epoch 40/100
+[2025-06-26 14:52:52][mlp_test.py:166][INFO] Epoch 40, Step 0, Batch count: 1, Loss: 0.0182
+[2025-06-26 14:52:53][mlp_test.py:168][INFO] Epoch 40 had 25 batches
+[2025-06-26 14:52:53][mlp_test.py:172][INFO] Epoch 40 completed. Train Loss: 0.0194, Val Loss: 5.3789, Val Accuracy: 31.60%
+[2025-06-26 14:52:53][mlp_test.py:144][INFO] Epoch 41/100
+[2025-06-26 14:52:53][mlp_test.py:166][INFO] Epoch 41, Step 0, Batch count: 1, Loss: 0.0251
+[2025-06-26 14:52:54][mlp_test.py:168][INFO] Epoch 41 had 25 batches
+[2025-06-26 14:52:54][mlp_test.py:172][INFO] Epoch 41 completed. Train Loss: 0.0192, Val Loss: 5.7064, Val Accuracy: 33.32%
+[2025-06-26 14:52:54][mlp_test.py:144][INFO] Epoch 42/100
+[2025-06-26 14:52:54][mlp_test.py:166][INFO] Epoch 42, Step 0, Batch count: 1, Loss: 0.0142
+[2025-06-26 14:52:55][mlp_test.py:168][INFO] Epoch 42 had 25 batches
+[2025-06-26 14:52:55][mlp_test.py:172][INFO] Epoch 42 completed. Train Loss: 0.0177, Val Loss: 5.4970, Val Accuracy: 35.29%
+[2025-06-26 14:52:55][mlp_test.py:144][INFO] Epoch 43/100
+[2025-06-26 14:52:55][mlp_test.py:166][INFO] Epoch 43, Step 0, Batch count: 1, Loss: 0.0247
+[2025-06-26 14:52:56][mlp_test.py:168][INFO] Epoch 43 had 25 batches
+[2025-06-26 14:52:56][mlp_test.py:172][INFO] Epoch 43 completed. Train Loss: 0.0165, Val Loss: 5.4175, Val Accuracy: 33.90%
+[2025-06-26 14:52:56][mlp_test.py:144][INFO] Epoch 44/100
+[2025-06-26 14:52:56][mlp_test.py:166][INFO] Epoch 44, Step 0, Batch count: 1, Loss: 0.0102
+[2025-06-26 14:52:57][mlp_test.py:168][INFO] Epoch 44 had 25 batches
+[2025-06-26 14:52:57][mlp_test.py:172][INFO] Epoch 44 completed. Train Loss: 0.0173, Val Loss: 5.7441, Val Accuracy: 34.19%
+[2025-06-26 14:52:57][mlp_test.py:144][INFO] Epoch 45/100
+[2025-06-26 14:52:57][mlp_test.py:166][INFO] Epoch 45, Step 0, Batch count: 1, Loss: 0.0255
+[2025-06-26 14:52:58][mlp_test.py:168][INFO] Epoch 45 had 25 batches
+[2025-06-26 14:52:58][mlp_test.py:172][INFO] Epoch 45 completed. Train Loss: 0.0189, Val Loss: 5.3182, Val Accuracy: 33.70%
+[2025-06-26 14:52:58][mlp_test.py:144][INFO] Epoch 46/100
+[2025-06-26 14:52:58][mlp_test.py:166][INFO] Epoch 46, Step 0, Batch count: 1, Loss: 0.0077
+[2025-06-26 14:52:59][mlp_test.py:168][INFO] Epoch 46 had 25 batches
+[2025-06-26 14:52:59][mlp_test.py:172][INFO] Epoch 46 completed. Train Loss: 0.0143, Val Loss: 5.3486, Val Accuracy: 31.44%
+[2025-06-26 14:52:59][mlp_test.py:144][INFO] Epoch 47/100
+[2025-06-26 14:52:59][mlp_test.py:166][INFO] Epoch 47, Step 0, Batch count: 1, Loss: 0.0198
+[2025-06-26 14:53:00][mlp_test.py:168][INFO] Epoch 47 had 25 batches
+[2025-06-26 14:53:00][mlp_test.py:172][INFO] Epoch 47 completed. Train Loss: 0.0169, Val Loss: 5.8838, Val Accuracy: 32.22%
+[2025-06-26 14:53:00][mlp_test.py:144][INFO] Epoch 48/100
+[2025-06-26 14:53:00][mlp_test.py:166][INFO] Epoch 48, Step 0, Batch count: 1, Loss: 0.0166
+[2025-06-26 14:53:01][mlp_test.py:168][INFO] Epoch 48 had 25 batches
+[2025-06-26 14:53:01][mlp_test.py:172][INFO] Epoch 48 completed. Train Loss: 0.0157, Val Loss: 5.0986, Val Accuracy: 33.23%
+[2025-06-26 14:53:01][mlp_test.py:144][INFO] Epoch 49/100
+[2025-06-26 14:53:01][mlp_test.py:166][INFO] Epoch 49, Step 0, Batch count: 1, Loss: 0.0213
+[2025-06-26 14:53:02][mlp_test.py:168][INFO] Epoch 49 had 25 batches
+[2025-06-26 14:53:02][mlp_test.py:172][INFO] Epoch 49 completed. Train Loss: 0.0182, Val Loss: 4.8513, Val Accuracy: 32.29%
+[2025-06-26 14:53:02][mlp_test.py:144][INFO] Epoch 50/100
+[2025-06-26 14:53:02][mlp_test.py:166][INFO] Epoch 50, Step 0, Batch count: 1, Loss: 0.0065
+[2025-06-26 14:53:03][mlp_test.py:168][INFO] Epoch 50 had 25 batches
+[2025-06-26 14:53:03][mlp_test.py:172][INFO] Epoch 50 completed. Train Loss: 0.0181, Val Loss: 5.0681, Val Accuracy: 29.42%
+[2025-06-26 14:53:03][mlp_test.py:144][INFO] Epoch 51/100
+[2025-06-26 14:53:03][mlp_test.py:166][INFO] Epoch 51, Step 0, Batch count: 1, Loss: 0.0111
+[2025-06-26 14:53:04][mlp_test.py:168][INFO] Epoch 51 had 25 batches
+[2025-06-26 14:53:04][mlp_test.py:172][INFO] Epoch 51 completed. Train Loss: 0.0160, Val Loss: 5.7469, Val Accuracy: 31.55%
+[2025-06-26 14:53:04][mlp_test.py:144][INFO] Epoch 52/100
+[2025-06-26 14:53:04][mlp_test.py:166][INFO] Epoch 52, Step 0, Batch count: 1, Loss: 0.0131
+[2025-06-26 14:53:05][mlp_test.py:168][INFO] Epoch 52 had 25 batches
+[2025-06-26 14:53:05][mlp_test.py:172][INFO] Epoch 52 completed. Train Loss: 0.0182, Val Loss: 5.3161, Val Accuracy: 31.93%
+[2025-06-26 14:53:05][mlp_test.py:144][INFO] Epoch 53/100
+[2025-06-26 14:53:05][mlp_test.py:166][INFO] Epoch 53, Step 0, Batch count: 1, Loss: 0.0049
+[2025-06-26 14:53:06][mlp_test.py:168][INFO] Epoch 53 had 25 batches
+[2025-06-26 14:53:06][mlp_test.py:172][INFO] Epoch 53 completed. Train Loss: 0.0179, Val Loss: 5.2320, Val Accuracy: 31.68%
+[2025-06-26 14:53:06][mlp_test.py:144][INFO] Epoch 54/100
+[2025-06-26 14:53:06][mlp_test.py:166][INFO] Epoch 54, Step 0, Batch count: 1, Loss: 0.0118
+[2025-06-26 14:53:07][mlp_test.py:168][INFO] Epoch 54 had 25 batches
+[2025-06-26 14:53:07][mlp_test.py:172][INFO] Epoch 54 completed. Train Loss: 0.0180, Val Loss: 5.2961, Val Accuracy: 30.64%
+[2025-06-26 14:53:07][mlp_test.py:144][INFO] Epoch 55/100
+[2025-06-26 14:53:07][mlp_test.py:166][INFO] Epoch 55, Step 0, Batch count: 1, Loss: 0.0082
+[2025-06-26 14:53:08][mlp_test.py:168][INFO] Epoch 55 had 25 batches
+[2025-06-26 14:53:08][mlp_test.py:172][INFO] Epoch 55 completed. Train Loss: 0.0182, Val Loss: 5.2632, Val Accuracy: 33.35%
+[2025-06-26 14:53:08][mlp_test.py:144][INFO] Epoch 56/100
+[2025-06-26 14:53:08][mlp_test.py:166][INFO] Epoch 56, Step 0, Batch count: 1, Loss: 0.0152
+[2025-06-26 14:53:08][mlp_test.py:168][INFO] Epoch 56 had 25 batches
+[2025-06-26 14:53:09][mlp_test.py:172][INFO] Epoch 56 completed. Train Loss: 0.0151, Val Loss: 5.5089, Val Accuracy: 31.01%
+[2025-06-26 14:53:09][mlp_test.py:144][INFO] Epoch 57/100
+[2025-06-26 14:53:09][mlp_test.py:166][INFO] Epoch 57, Step 0, Batch count: 1, Loss: 0.0147
+[2025-06-26 14:53:09][mlp_test.py:168][INFO] Epoch 57 had 25 batches
+[2025-06-26 14:53:10][mlp_test.py:172][INFO] Epoch 57 completed. Train Loss: 0.0176, Val Loss: 5.6442, Val Accuracy: 32.39%
+[2025-06-26 14:53:10][mlp_test.py:144][INFO] Epoch 58/100
+[2025-06-26 14:53:10][mlp_test.py:166][INFO] Epoch 58, Step 0, Batch count: 1, Loss: 0.0187
+[2025-06-26 14:53:10][mlp_test.py:168][INFO] Epoch 58 had 25 batches
+[2025-06-26 14:53:11][mlp_test.py:172][INFO] Epoch 58 completed. Train Loss: 0.0167, Val Loss: 5.8097, Val Accuracy: 32.09%
+[2025-06-26 14:53:11][mlp_test.py:144][INFO] Epoch 59/100
+[2025-06-26 14:53:11][mlp_test.py:166][INFO] Epoch 59, Step 0, Batch count: 1, Loss: 0.0096
+[2025-06-26 14:53:11][mlp_test.py:168][INFO] Epoch 59 had 25 batches
+[2025-06-26 14:53:12][mlp_test.py:172][INFO] Epoch 59 completed. Train Loss: 0.0158, Val Loss: 5.0470, Val Accuracy: 32.08%
+[2025-06-26 14:53:12][mlp_test.py:144][INFO] Epoch 60/100
+[2025-06-26 14:53:12][mlp_test.py:166][INFO] Epoch 60, Step 0, Batch count: 1, Loss: 0.0075
+[2025-06-26 14:53:12][mlp_test.py:168][INFO] Epoch 60 had 25 batches
+[2025-06-26 14:53:13][mlp_test.py:172][INFO] Epoch 60 completed. Train Loss: 0.0134, Val Loss: 5.9458, Val Accuracy: 32.80%
+[2025-06-26 14:53:13][mlp_test.py:144][INFO] Epoch 61/100
+[2025-06-26 14:53:13][mlp_test.py:166][INFO] Epoch 61, Step 0, Batch count: 1, Loss: 0.0095
+[2025-06-26 14:53:13][mlp_test.py:168][INFO] Epoch 61 had 25 batches
+[2025-06-26 14:53:14][mlp_test.py:172][INFO] Epoch 61 completed. Train Loss: 0.0157, Val Loss: 6.0564, Val Accuracy: 31.33%
+[2025-06-26 14:53:14][mlp_test.py:144][INFO] Epoch 62/100
+[2025-06-26 14:53:14][mlp_test.py:166][INFO] Epoch 62, Step 0, Batch count: 1, Loss: 0.0246
+[2025-06-26 14:53:14][mlp_test.py:168][INFO] Epoch 62 had 25 batches
+[2025-06-26 14:53:15][mlp_test.py:172][INFO] Epoch 62 completed. Train Loss: 0.0170, Val Loss: 5.6028, Val Accuracy: 27.19%
+[2025-06-26 14:53:15][mlp_test.py:144][INFO] Epoch 63/100
+[2025-06-26 14:53:15][mlp_test.py:166][INFO] Epoch 63, Step 0, Batch count: 1, Loss: 0.0231
+[2025-06-26 14:53:15][mlp_test.py:168][INFO] Epoch 63 had 25 batches
+[2025-06-26 14:53:16][mlp_test.py:172][INFO] Epoch 63 completed. Train Loss: 0.0162, Val Loss: 5.4753, Val Accuracy: 28.25%
+[2025-06-26 14:53:16][mlp_test.py:144][INFO] Epoch 64/100
+[2025-06-26 14:53:16][mlp_test.py:166][INFO] Epoch 64, Step 0, Batch count: 1, Loss: 0.0063
+[2025-06-26 14:53:16][mlp_test.py:168][INFO] Epoch 64 had 25 batches
+[2025-06-26 14:53:17][mlp_test.py:172][INFO] Epoch 64 completed. Train Loss: 0.0165, Val Loss: 4.9067, Val Accuracy: 28.51%
+[2025-06-26 14:53:17][mlp_test.py:144][INFO] Epoch 65/100
+[2025-06-26 14:53:17][mlp_test.py:166][INFO] Epoch 65, Step 0, Batch count: 1, Loss: 0.0172
+[2025-06-26 14:53:17][mlp_test.py:168][INFO] Epoch 65 had 25 batches
+[2025-06-26 14:53:18][mlp_test.py:172][INFO] Epoch 65 completed. Train Loss: 0.0141, Val Loss: 5.1227, Val Accuracy: 32.14%
+[2025-06-26 14:53:18][mlp_test.py:144][INFO] Epoch 66/100
+[2025-06-26 14:53:18][mlp_test.py:166][INFO] Epoch 66, Step 0, Batch count: 1, Loss: 0.0185
+[2025-06-26 14:53:18][mlp_test.py:168][INFO] Epoch 66 had 25 batches
+[2025-06-26 14:53:18][mlp_test.py:172][INFO] Epoch 66 completed. Train Loss: 0.0143, Val Loss: 5.3576, Val Accuracy: 31.82%
+[2025-06-26 14:53:19][mlp_test.py:144][INFO] Epoch 67/100
+[2025-06-26 14:53:19][mlp_test.py:166][INFO] Epoch 67, Step 0, Batch count: 1, Loss: 0.0068
+[2025-06-26 14:53:19][mlp_test.py:168][INFO] Epoch 67 had 25 batches
+[2025-06-26 14:53:19][mlp_test.py:172][INFO] Epoch 67 completed. Train Loss: 0.0151, Val Loss: 5.0354, Val Accuracy: 32.23%
+[2025-06-26 14:53:19][mlp_test.py:144][INFO] Epoch 68/100
+[2025-06-26 14:53:19][mlp_test.py:166][INFO] Epoch 68, Step 0, Batch count: 1, Loss: 0.0300
+[2025-06-26 14:53:20][mlp_test.py:168][INFO] Epoch 68 had 25 batches
+[2025-06-26 14:53:20][mlp_test.py:172][INFO] Epoch 68 completed. Train Loss: 0.0170, Val Loss: 5.4420, Val Accuracy: 34.59%
+[2025-06-26 14:53:20][mlp_test.py:144][INFO] Epoch 69/100
+[2025-06-26 14:53:20][mlp_test.py:166][INFO] Epoch 69, Step 0, Batch count: 1, Loss: 0.0401
+[2025-06-26 14:53:21][mlp_test.py:168][INFO] Epoch 69 had 25 batches
+[2025-06-26 14:53:21][mlp_test.py:172][INFO] Epoch 69 completed. Train Loss: 0.0193, Val Loss: 4.7385, Val Accuracy: 33.94%
+[2025-06-26 14:53:21][mlp_test.py:144][INFO] Epoch 70/100
+[2025-06-26 14:53:21][mlp_test.py:166][INFO] Epoch 70, Step 0, Batch count: 1, Loss: 0.0110
+[2025-06-26 14:53:22][mlp_test.py:168][INFO] Epoch 70 had 25 batches
+[2025-06-26 14:53:22][mlp_test.py:172][INFO] Epoch 70 completed. Train Loss: 0.0164, Val Loss: 5.1768, Val Accuracy: 34.73%
+[2025-06-26 14:53:22][mlp_test.py:144][INFO] Epoch 71/100
+[2025-06-26 14:53:22][mlp_test.py:166][INFO] Epoch 71, Step 0, Batch count: 1, Loss: 0.0147
+[2025-06-26 14:53:23][mlp_test.py:168][INFO] Epoch 71 had 25 batches
+[2025-06-26 14:53:23][mlp_test.py:172][INFO] Epoch 71 completed. Train Loss: 0.0124, Val Loss: 5.2378, Val Accuracy: 34.33%
+[2025-06-26 14:53:23][mlp_test.py:144][INFO] Epoch 72/100
+[2025-06-26 14:53:23][mlp_test.py:166][INFO] Epoch 72, Step 0, Batch count: 1, Loss: 0.0036
+[2025-06-26 14:53:24][mlp_test.py:168][INFO] Epoch 72 had 25 batches
+[2025-06-26 14:53:24][mlp_test.py:172][INFO] Epoch 72 completed. Train Loss: 0.0127, Val Loss: 5.7628, Val Accuracy: 33.31%
+[2025-06-26 14:53:24][mlp_test.py:144][INFO] Epoch 73/100
+[2025-06-26 14:53:24][mlp_test.py:166][INFO] Epoch 73, Step 0, Batch count: 1, Loss: 0.0208
+[2025-06-26 14:53:25][mlp_test.py:168][INFO] Epoch 73 had 25 batches
+[2025-06-26 14:53:25][mlp_test.py:172][INFO] Epoch 73 completed. Train Loss: 0.0137, Val Loss: 6.1952, Val Accuracy: 31.49%
+[2025-06-26 14:53:25][mlp_test.py:144][INFO] Epoch 74/100
+[2025-06-26 14:53:25][mlp_test.py:166][INFO] Epoch 74, Step 0, Batch count: 1, Loss: 0.0197
+[2025-06-26 14:53:26][mlp_test.py:168][INFO] Epoch 74 had 25 batches
+[2025-06-26 14:53:26][mlp_test.py:172][INFO] Epoch 74 completed. Train Loss: 0.0141, Val Loss: 6.2569, Val Accuracy: 32.51%
+[2025-06-26 14:53:26][mlp_test.py:144][INFO] Epoch 75/100
+[2025-06-26 14:53:26][mlp_test.py:166][INFO] Epoch 75, Step 0, Batch count: 1, Loss: 0.0139
+[2025-06-26 14:53:27][mlp_test.py:168][INFO] Epoch 75 had 25 batches
+[2025-06-26 14:53:27][mlp_test.py:172][INFO] Epoch 75 completed. Train Loss: 0.0135, Val Loss: 5.3884, Val Accuracy: 31.54%
+[2025-06-26 14:53:27][mlp_test.py:144][INFO] Epoch 76/100
+[2025-06-26 14:53:27][mlp_test.py:166][INFO] Epoch 76, Step 0, Batch count: 1, Loss: 0.0277
+[2025-06-26 14:53:28][mlp_test.py:168][INFO] Epoch 76 had 25 batches
+[2025-06-26 14:53:28][mlp_test.py:172][INFO] Epoch 76 completed. Train Loss: 0.0109, Val Loss: 5.7745, Val Accuracy: 32.04%
+[2025-06-26 14:53:28][mlp_test.py:144][INFO] Epoch 77/100
+[2025-06-26 14:53:28][mlp_test.py:166][INFO] Epoch 77, Step 0, Batch count: 1, Loss: 0.0141
+[2025-06-26 14:53:29][mlp_test.py:168][INFO] Epoch 77 had 25 batches
+[2025-06-26 14:53:29][mlp_test.py:172][INFO] Epoch 77 completed. Train Loss: 0.0148, Val Loss: 5.4465, Val Accuracy: 33.70%
+[2025-06-26 14:53:29][mlp_test.py:144][INFO] Epoch 78/100
+[2025-06-26 14:53:29][mlp_test.py:166][INFO] Epoch 78, Step 0, Batch count: 1, Loss: 0.0152
+[2025-06-26 14:53:30][mlp_test.py:168][INFO] Epoch 78 had 25 batches
+[2025-06-26 14:53:30][mlp_test.py:172][INFO] Epoch 78 completed. Train Loss: 0.0133, Val Loss: 6.0843, Val Accuracy: 33.20%
+[2025-06-26 14:53:30][mlp_test.py:144][INFO] Epoch 79/100
+[2025-06-26 14:53:30][mlp_test.py:166][INFO] Epoch 79, Step 0, Batch count: 1, Loss: 0.0066
+[2025-06-26 14:53:31][mlp_test.py:168][INFO] Epoch 79 had 25 batches
+[2025-06-26 14:53:31][mlp_test.py:172][INFO] Epoch 79 completed. Train Loss: 0.0156, Val Loss: 5.5758, Val Accuracy: 33.50%
+[2025-06-26 14:53:31][mlp_test.py:144][INFO] Epoch 80/100
+[2025-06-26 14:53:31][mlp_test.py:166][INFO] Epoch 80, Step 0, Batch count: 1, Loss: 0.0191
+[2025-06-26 14:53:32][mlp_test.py:168][INFO] Epoch 80 had 25 batches
+[2025-06-26 14:53:32][mlp_test.py:172][INFO] Epoch 80 completed. Train Loss: 0.0146, Val Loss: 5.8205, Val Accuracy: 34.60%
+[2025-06-26 14:53:32][mlp_test.py:144][INFO] Epoch 81/100
+[2025-06-26 14:53:32][mlp_test.py:166][INFO] Epoch 81, Step 0, Batch count: 1, Loss: 0.0014
+[2025-06-26 14:53:33][mlp_test.py:168][INFO] Epoch 81 had 25 batches
+[2025-06-26 14:53:34][mlp_test.py:172][INFO] Epoch 81 completed. Train Loss: 0.0147, Val Loss: 5.1694, Val Accuracy: 35.20%
+[2025-06-26 14:53:34][mlp_test.py:144][INFO] Epoch 82/100
+[2025-06-26 14:53:34][mlp_test.py:166][INFO] Epoch 82, Step 0, Batch count: 1, Loss: 0.0139
+[2025-06-26 14:53:34][mlp_test.py:168][INFO] Epoch 82 had 25 batches
+[2025-06-26 14:53:35][mlp_test.py:172][INFO] Epoch 82 completed. Train Loss: 0.0145, Val Loss: 5.5511, Val Accuracy: 35.13%
+[2025-06-26 14:53:35][mlp_test.py:144][INFO] Epoch 83/100
+[2025-06-26 14:53:35][mlp_test.py:166][INFO] Epoch 83, Step 0, Batch count: 1, Loss: 0.0079
+[2025-06-26 14:53:35][mlp_test.py:168][INFO] Epoch 83 had 25 batches
+[2025-06-26 14:53:36][mlp_test.py:172][INFO] Epoch 83 completed. Train Loss: 0.0134, Val Loss: 5.2475, Val Accuracy: 34.16%
+[2025-06-26 14:53:36][mlp_test.py:144][INFO] Epoch 84/100
+[2025-06-26 14:53:36][mlp_test.py:166][INFO] Epoch 84, Step 0, Batch count: 1, Loss: 0.0082
+[2025-06-26 14:53:36][mlp_test.py:168][INFO] Epoch 84 had 25 batches
+[2025-06-26 14:53:37][mlp_test.py:172][INFO] Epoch 84 completed. Train Loss: 0.0147, Val Loss: 5.2812, Val Accuracy: 31.81%
+[2025-06-26 14:53:37][mlp_test.py:144][INFO] Epoch 85/100
+[2025-06-26 14:53:37][mlp_test.py:166][INFO] Epoch 85, Step 0, Batch count: 1, Loss: 0.0110
+[2025-06-26 14:53:37][mlp_test.py:168][INFO] Epoch 85 had 25 batches
+[2025-06-26 14:53:38][mlp_test.py:172][INFO] Epoch 85 completed. Train Loss: 0.0134, Val Loss: 5.6268, Val Accuracy: 31.23%
+[2025-06-26 14:53:38][mlp_test.py:144][INFO] Epoch 86/100
+[2025-06-26 14:53:38][mlp_test.py:166][INFO] Epoch 86, Step 0, Batch count: 1, Loss: 0.0094
+[2025-06-26 14:53:38][mlp_test.py:168][INFO] Epoch 86 had 25 batches
+[2025-06-26 14:53:39][mlp_test.py:172][INFO] Epoch 86 completed. Train Loss: 0.0113, Val Loss: 6.0274, Val Accuracy: 31.07%
+[2025-06-26 14:53:39][mlp_test.py:144][INFO] Epoch 87/100
+[2025-06-26 14:53:39][mlp_test.py:166][INFO] Epoch 87, Step 0, Batch count: 1, Loss: 0.0070
+[2025-06-26 14:53:39][mlp_test.py:168][INFO] Epoch 87 had 25 batches
+[2025-06-26 14:53:40][mlp_test.py:172][INFO] Epoch 87 completed. Train Loss: 0.0148, Val Loss: 6.0542, Val Accuracy: 27.30%
+[2025-06-26 14:53:40][mlp_test.py:144][INFO] Epoch 88/100
+[2025-06-26 14:53:40][mlp_test.py:166][INFO] Epoch 88, Step 0, Batch count: 1, Loss: 0.0318
+[2025-06-26 14:53:40][mlp_test.py:168][INFO] Epoch 88 had 25 batches
+[2025-06-26 14:53:41][mlp_test.py:172][INFO] Epoch 88 completed. Train Loss: 0.0153, Val Loss: 5.6687, Val Accuracy: 32.29%
+[2025-06-26 14:53:41][mlp_test.py:144][INFO] Epoch 89/100
+[2025-06-26 14:53:41][mlp_test.py:166][INFO] Epoch 89, Step 0, Batch count: 1, Loss: 0.0182
+[2025-06-26 14:53:41][mlp_test.py:168][INFO] Epoch 89 had 25 batches
+[2025-06-26 14:53:42][mlp_test.py:172][INFO] Epoch 89 completed. Train Loss: 0.0109, Val Loss: 5.1807, Val Accuracy: 32.27%
+[2025-06-26 14:53:42][mlp_test.py:144][INFO] Epoch 90/100
+[2025-06-26 14:53:42][mlp_test.py:166][INFO] Epoch 90, Step 0, Batch count: 1, Loss: 0.0157
+[2025-06-26 14:53:42][mlp_test.py:168][INFO] Epoch 90 had 25 batches
+[2025-06-26 14:53:43][mlp_test.py:172][INFO] Epoch 90 completed. Train Loss: 0.0139, Val Loss: 5.2004, Val Accuracy: 32.86%
+[2025-06-26 14:53:43][mlp_test.py:144][INFO] Epoch 91/100
+[2025-06-26 14:53:43][mlp_test.py:166][INFO] Epoch 91, Step 0, Batch count: 1, Loss: 0.0120
+[2025-06-26 14:53:43][mlp_test.py:168][INFO] Epoch 91 had 25 batches
+[2025-06-26 14:53:44][mlp_test.py:172][INFO] Epoch 91 completed. Train Loss: 0.0124, Val Loss: 5.4095, Val Accuracy: 32.41%
+[2025-06-26 14:53:44][mlp_test.py:144][INFO] Epoch 92/100
+[2025-06-26 14:53:44][mlp_test.py:166][INFO] Epoch 92, Step 0, Batch count: 1, Loss: 0.0107
+[2025-06-26 14:53:44][mlp_test.py:168][INFO] Epoch 92 had 25 batches
+[2025-06-26 14:53:45][mlp_test.py:172][INFO] Epoch 92 completed. Train Loss: 0.0101, Val Loss: 5.7662, Val Accuracy: 30.53%
+[2025-06-26 14:53:45][mlp_test.py:144][INFO] Epoch 93/100
+[2025-06-26 14:53:45][mlp_test.py:166][INFO] Epoch 93, Step 0, Batch count: 1, Loss: 0.0035
+[2025-06-26 14:53:45][mlp_test.py:168][INFO] Epoch 93 had 25 batches
+[2025-06-26 14:53:46][mlp_test.py:172][INFO] Epoch 93 completed. Train Loss: 0.0116, Val Loss: 5.4016, Val Accuracy: 31.34%
+[2025-06-26 14:53:46][mlp_test.py:144][INFO] Epoch 94/100
+[2025-06-26 14:53:46][mlp_test.py:166][INFO] Epoch 94, Step 0, Batch count: 1, Loss: 0.0140
+[2025-06-26 14:53:46][mlp_test.py:168][INFO] Epoch 94 had 25 batches
+[2025-06-26 14:53:46][mlp_test.py:172][INFO] Epoch 94 completed. Train Loss: 0.0107, Val Loss: 5.6670, Val Accuracy: 33.12%
+[2025-06-26 14:53:47][mlp_test.py:144][INFO] Epoch 95/100
+[2025-06-26 14:53:47][mlp_test.py:166][INFO] Epoch 95, Step 0, Batch count: 1, Loss: 0.0199
+[2025-06-26 14:53:47][mlp_test.py:168][INFO] Epoch 95 had 25 batches
+[2025-06-26 14:53:47][mlp_test.py:172][INFO] Epoch 95 completed. Train Loss: 0.0125, Val Loss: 6.0301, Val Accuracy: 32.82%
+[2025-06-26 14:53:48][mlp_test.py:144][INFO] Epoch 96/100
+[2025-06-26 14:53:48][mlp_test.py:166][INFO] Epoch 96, Step 0, Batch count: 1, Loss: 0.0134
+[2025-06-26 14:53:48][mlp_test.py:168][INFO] Epoch 96 had 25 batches
+[2025-06-26 14:53:48][mlp_test.py:172][INFO] Epoch 96 completed. Train Loss: 0.0112, Val Loss: 5.6383, Val Accuracy: 30.96%
+[2025-06-26 14:53:49][mlp_test.py:144][INFO] Epoch 97/100
+[2025-06-26 14:53:49][mlp_test.py:166][INFO] Epoch 97, Step 0, Batch count: 1, Loss: 0.0019
+[2025-06-26 14:53:49][mlp_test.py:168][INFO] Epoch 97 had 25 batches
+[2025-06-26 14:53:49][mlp_test.py:172][INFO] Epoch 97 completed. Train Loss: 0.0089, Val Loss: 6.1914, Val Accuracy: 30.09%
+[2025-06-26 14:53:49][mlp_test.py:144][INFO] Epoch 98/100
+[2025-06-26 14:53:49][mlp_test.py:166][INFO] Epoch 98, Step 0, Batch count: 1, Loss: 0.0131
+[2025-06-26 14:53:50][mlp_test.py:168][INFO] Epoch 98 had 25 batches
+[2025-06-26 14:53:50][mlp_test.py:172][INFO] Epoch 98 completed. Train Loss: 0.0116, Val Loss: 6.0234, Val Accuracy: 28.70%
+[2025-06-26 14:53:50][mlp_test.py:144][INFO] Epoch 99/100
+[2025-06-26 14:53:50][mlp_test.py:166][INFO] Epoch 99, Step 0, Batch count: 1, Loss: 0.0027
+[2025-06-26 14:53:51][mlp_test.py:168][INFO] Epoch 99 had 25 batches
+[2025-06-26 14:53:51][mlp_test.py:172][INFO] Epoch 99 completed. Train Loss: 0.0107, Val Loss: 5.7535, Val Accuracy: 30.39%
+[2025-06-26 14:53:51][mlp_test.py:144][INFO] Epoch 100/100
+[2025-06-26 14:53:51][mlp_test.py:166][INFO] Epoch 100, Step 0, Batch count: 1, Loss: 0.0062
+[2025-06-26 14:53:52][mlp_test.py:168][INFO] Epoch 100 had 25 batches
+[2025-06-26 14:53:52][mlp_test.py:172][INFO] Epoch 100 completed. Train Loss: 0.0106, Val Loss: 6.2648, Val Accuracy: 29.28%
+[2025-06-26 14:53:52][mlp_test.py:190][INFO] Training completed. Best validation accuracy: 35.29%

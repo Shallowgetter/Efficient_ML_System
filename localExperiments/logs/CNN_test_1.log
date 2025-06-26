@@ -1,0 +1,35 @@
+[2025-06-26 17:13:40][cnn_test.py:98][INFO] Starting training for CNN_test_1
+[2025-06-26 17:13:40][cnn_test.py:99][INFO] Configuration: {'name': 'CNN', 'model_name': 'CNN_test_1', 'dataLoader': 'get_npz_dataloader', 'num_elements': 36, 'window_size': 500, 'num_classes': 8, 'lr': 0.001, 'batch_size': 512, 'criterion': 'CrossEntropyLoss', 'optimizer': 'Adam', 'epochs': 100, 'dropout': 0.2}
+[2025-06-26 17:13:47][cnn_test.py:123][INFO] Train loaded: 50 batches
+[2025-06-26 17:13:47][cnn_test.py:124][INFO] Validation loaded: 31 batches
+[2025-06-26 17:13:47][cnn_test.py:128][INFO] Model architecture:
+CNN(
+  (element_branches): ModuleList(
+    (0-35): 36 x _elementWiseBrach(
+      (0): Conv1d(1, 64, kernel_size=(3,), stride=(1,), padding=(1,))
+      (1): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): ReLU()
+      (3): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (4): Conv1d(64, 128, kernel_size=(3,), stride=(1,), padding=(1,))
+      (5): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (6): ReLU()
+      (7): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    )
+  )
+  (global_branch): Sequential(
+    (0): Conv1d(4608, 32, kernel_size=(3,), stride=(1,), padding=(1,))
+    (1): BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): MaxPool1d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (fc): Sequential(
+    (0): Linear(in_features=1984, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.2, inplace=False)
+    (3): Linear(in_features=512, out_features=8, bias=True)
+  )
+)
+[2025-06-26 17:13:47][cnn_test.py:132][INFO] Using device: cpu
+[2025-06-26 17:13:48][cnn_test.py:140][INFO] Train dataset has 50 batches with batch size 512
+[2025-06-26 17:13:48][cnn_test.py:144][INFO] Epoch 1/100
+[2025-06-26 17:14:13][cnn_test.py:166][INFO] Epoch 1, Step 0, Batch count: 1, Loss: 2.0440

@@ -22,6 +22,10 @@ from typing import Optional
 import numpy as np
 import torch
 
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, f1_score, classification_report
+import seaborn as sns
+
 
 # ------------------------------------------------------------------ #
 # 1. Reproduce experiments: Fix random seeds
@@ -215,3 +219,43 @@ def load_checkpoint(filename, model, optimizer=None):
 
 
 
+def plot_confusion_matrix(test_y,pred_y,class_names,normalize=False, fontsize=24, vmin=0, vmax=1, axis=1):
+    cm = (confusion_matrix(test_y,pred_y))
+    # classes = class_names[unique_labels(test_y,pred_y)]
+    if normalize:
+        cm_rate = cm.astype('float') / cm.sum(axis=axis, keepdims=True)
+    
+    if len(class_names) <= 3:
+        fig, ax = plt.subplots(figsize=(8, 4))
+    else:
+        fig, ax = plt.subplots(figsize=(16, 8))
+
+    im = ax.imshow(cm_rate, interpolation='nearest', cmap=plt.cm.Blues, vmin=vmin, vmax=vmax)
+#     ax.figure.colorbar(im, ax=ax)
+    ax.set(xticks=np.arange(cm.shape[1]),
+           yticks=np.arange(cm.shape[0]),
+           xticklabels=class_names,
+           yticklabels=class_names,
+           ylabel='True label\n',
+           xlabel='\nPredicted label')
+    ax.set_ylabel('True label\n', fontsize=fontsize)
+    ax.set_xlabel('\nPredicted label', fontsize=fontsize)
+    ax.set_xticklabels(class_names, fontsize=fontsize)
+    ax.set_yticklabels(class_names, fontsize=fontsize)
+    
+    fmt = '.2f' if normalize else 'd'
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            ax.text(j,
+                    i,
+                    format(cm_rate[i, j] * 100, fmt),
+                    ha="center",
+                    va="center",
+                    color="white" if cm_rate[i, j] > 0.5 else 'black', fontsize=fontsize)
+            ax.text(j, i+0.3, '( ' + str(cm[i, j]) + ' )', ha="center",
+                    va="center",
+                    color="white" if cm_rate[i, j] > 0.5 else 'black', fontsize=fontsize//2)
+    fig.tight_layout()
+    
+    print(f1_score(test_y, pred_y, average='macro'))
+    return ax

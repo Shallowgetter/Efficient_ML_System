@@ -6,7 +6,7 @@ import argparse
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
-from model.mlp import MLP
+from model.cnn import CNN
 from preprocessing.getDataset import get_npz_dataloader, get_mag_dataloader
 from utils.utils import get_logger, save_checkpoint, AverageMeter, plot_confusion_matrix
 import numpy as np
@@ -22,10 +22,10 @@ def parse_arguments():
     """
     Parse command line arguments
     """
-    parser = argparse.ArgumentParser(description="MLP Training Script")
+    parser = argparse.ArgumentParser(description="CNN Training Script")
     parser.add_argument('--config', type=str, default='localExperiments/model_param/mlp_cnn_params.yaml',
                         help='Path to configuration file')
-    parser.add_argument('--model_name', type=str, default='MLP_test_1',
+    parser.add_argument('--model_name', type=str, default='CNN_test_1',
                         help='Model name as specified in the configuration file')
     return parser.parse_args()
 
@@ -82,7 +82,7 @@ def train_model(config):
     if not os.path.exists(logs_dir):
         os.makedirs(logs_dir)
 
-    checkpoints_dir = "localExperiments/model_result/mlp/checkpoints"
+    checkpoints_dir = "localExperiments/model_result/cnn/checkpoints"
     if not os.path.exists(checkpoints_dir):
         os.makedirs(checkpoints_dir)
 
@@ -124,7 +124,7 @@ def train_model(config):
     logger.info(f"Validation loaded: {len(val_loader)} batches")
 
     # Initialize model
-    model = MLP(input_size=config['input_size'], dropout=config['dropout'])
+    model = CNN(num_elements=config['num_elements'], window_size=config['window_size'], num_classes=config['num_classes'], dropout=config['dropout'])
     logger.info(f"Model architecture:\n{model}")
     
     # Setup device, loss, and optimizer
@@ -200,116 +200,6 @@ def train_model(config):
         f.write(f"Model saved at: {best_model_path}\n")
         f.write(f"Configuration: {config}\n")
 
-def train_model_cv(config, folds=5, seed=2025):
-    """
-    只使用 shl_train.npz，对其做 K-Fold 交叉验证。
-    """
-    # --------------- 设置数据加载器 ----------------
-    if config['dataLoader'] == 'get_npz_dataloader':
-        data_loader_func = get_npz_dataloader
-    elif config['dataLoader'] == 'get_mag_dataloader':
-        data_loader_func = get_mag_dataloader
-    else:
-        raise ValueError(f"Unknown dataLoader: {config['dataLoader']}")
-
-    # --------------- 加载全部数据 ----------------
-    train_npz_path = "/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/shl_train.npz"
-    data = np.load(train_npz_path)
-    X_all = torch.from_numpy(data['data']).float()   # (N, C, W)
-    y_all = torch.from_numpy(data['labels']).long()    # (N,)
-    
-    full_ds = TensorDataset(X_all, y_all)
-
-    kf = KFold(n_splits=folds, shuffle=True, random_state=seed)
-    fold_metrics = []
-
-    for fold, (train_idx, val_idx) in enumerate(kf.split(X_all)):
-        print(f"\n===== Fold {fold+1}/{folds}  | train={len(train_idx)}  val={len(val_idx)} =====")
-
-        # --------------- 2. DataLoader ----------------
-        # 使用与train_model相同的数据加载器，但需要使用Subset来划分数据
-        full_loader = data_loader_func(
-            npz_path=train_npz_path,
-            batch_size=config['batch_size'],
-            shuffle=False,  # 不需要打乱，因为我们会手动选择索引
-            num_workers=0
-        )
-        
-        # 创建训练集和验证集的子集
-        train_subset = Subset(full_loader.dataset, train_idx)
-        val_subset = Subset(full_loader.dataset, val_idx)
-        
-        train_loader = DataLoader(
-            train_subset,
-            batch_size=config['batch_size'],
-            shuffle=True,
-            num_workers=0,
-            pin_memory=False
-        )
-        
-        val_loader = DataLoader(
-            val_subset,
-            batch_size=config['batch_size'],
-            shuffle=False,
-            num_workers=0,
-            pin_memory=False
-        )
-
-        # --------------- Logger ----------------
-        logs_dir = "localExperiments/logs"
-        os.makedirs(logs_dir, exist_ok=True)
-        ckpt_dir = "localExperiments/model_result/checkpoints"
-        os.makedirs(ckpt_dir, exist_ok=True)
-
-        fold_tag = f"{config['model_name']}_fold{fold+1}"
-        logger = get_logger(
-            filename=os.path.join(logs_dir, f"{fold_tag}.log"),
-            name=f"{fold_tag}Logger",
-            level="DEBUG", overwrite=True, to_stdout=True
-        )
-
-        # --------------- Model / Optimizer ----------------
-        model = MLP(input_size=config['input_size'], dropout=config['dropout'])
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model.to(device)
-
-        criterion = getattr(torch.nn, config['criterion'])()
-        optimizer = getattr(torch.optim, config['optimizer'])(model.parameters(), lr=config['lr'])
-
-        best_acc = 0.0
-        for epoch in range(config['epochs']):
-            model.train()
-            loss_meter = AverageMeter()
-            for inputs, targets in train_loader:
-                inputs, targets = inputs.to(device), targets.to(device)
-                optimizer.zero_grad()
-                outputs = model(inputs)
-                loss = criterion(outputs, targets)
-                loss.backward()
-                optimizer.step()
-                loss_meter.update(loss.item(), inputs.size(0))
-
-            val_loss, val_acc = evaluate(model, val_loader, device, criterion)
-            logger.info(f"Fold {fold+1} | Epoch {epoch+1}/{config['epochs']} "
-                        f"TrainLoss {loss_meter.avg:.4f}  ValAcc {val_acc:.2f}%")
-
-            if val_acc > best_acc:
-                best_acc = val_acc
-                save_checkpoint(
-                    model, optimizer, epoch+1, loss_meter.avg, val_acc,
-                    filename=os.path.join(ckpt_dir, f"{fold_tag}_epoch{epoch+1}.pth"),
-                    is_best=True,
-                    best_filename=os.path.join(ckpt_dir, f"{fold_tag}_best.pth")
-                )
-
-        logger.info(f"=== Fold {fold+1} finished. Best ValAcc={best_acc:.2f}% ===")
-        fold_metrics.append(best_acc)
-
-    mean_acc = np.mean(fold_metrics)
-    std_acc  = np.std (fold_metrics)
-    print(f"\n##### 5-Fold CV finished: mean={mean_acc:.2f}%  std={std_acc:.2f}% #####")
-
-
 
 def result_validation(config, fold=None):
     """
@@ -324,8 +214,8 @@ def result_validation(config, fold=None):
     )
 
     # ---------- 1. Load Model ----------
-    ckpt_dir = "localExperiments/model_result/mlp/checkpoints"
-    
+    ckpt_dir = "localExperiments/model_result/cnn/checkpoints"
+
     if fold is not None:
         # Load specified fold model
         best_path = os.path.join(ckpt_dir, f"{config['model_name']}_fold{fold}_best.pth")
@@ -339,7 +229,7 @@ def result_validation(config, fold=None):
         assert best_path is not None, f"Found no valid model checkpoints for {config['model_name']}"
         logger.info(f"Automatically selected best fold: fold{fold} (Validation accuracy: {best_acc:.2f}%)")
 
-    model = MLP(input_size=config['input_size'], dropout=config['dropout'])
+    model = CNN(num_elements=config['num_elements'], window_size=config['window_size'], num_classes=config['num_classes'], dropout=config['dropout'])
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     checkpoint = torch.load(best_path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -394,7 +284,7 @@ def result_validation(config, fold=None):
     )
     
     plt.title(f'Confusion Matrix – {config["model_name"]}\nValAcc {val_acc:.2f}%')
-    results_dir = "localExperiments/model_result/mlp_confusion_matrix_plots"
+    results_dir = "localExperiments/model_result/cnn_confusion_matrix_plots"
     os.makedirs(results_dir, exist_ok=True)
     fig_path = os.path.join(results_dir, f"{config['model_name']}_val_cm.png")
     plt.savefig(fig_path, dpi=300, bbox_inches='tight')
@@ -412,9 +302,6 @@ if __name__ == "__main__":
     args = parse_arguments()
     cfg = load_config(args.config, args.model_name)
     
-    # train_model(cfg)
-    # train_model_cv(cfg, folds=5, seed=2025)   
+    train_model(cfg)   
 
     result_validation(cfg, fold=None)
-
-
