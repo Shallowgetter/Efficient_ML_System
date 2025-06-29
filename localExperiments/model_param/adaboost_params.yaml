@@ -1,0 +1,33 @@
+# ============================================================
+# AdaBoost Baseline – 二分类故障检测
+# ============================================================
+model:
+  - model_name: ADB_test_v1
+    description: >
+      依据论文 Table 5，将原 XGBoost 替换为 AdaBoost。
+      训练阶段 warm_start 逐棵增量学习，配合 tqdm 显示进度。
+
+    # ---------- 数据 ----------
+    window_size: 300
+    overlap: 0.3
+    num_elements: 8
+    num_classes: 2
+
+    # ---------- 训练流程占位（保持接口一致） ----------
+    batch_size: 4096   # 无实际作用，兼容字段
+    epochs: 1
+    criterion: null
+    optimizer: null
+    lr: 0.0
+
+    # ---------- AdaBoost 超参数 ----------
+    adaboost_params:
+      n_estimators: 400        # 与 Table 5 同步
+      learning_rate: 0.1
+      algorithm: "SAMME.R"    # sklearn 实现默认
+      random_state: 42
+      # warm_start 由脚本统一设置，无需在 YAML 中声明
+
+    # ---------- 日志 / 模型输出 ----------
+    log_dir:  "localExperiments/logs"
+    ckpt_dir: "localExperiments/model_result/adaboost"

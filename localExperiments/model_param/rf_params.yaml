@@ -1,0 +1,32 @@
+# ================================================================
+# Random-Forest Baseline – 8-Class Transportation-Mode Recognition
+# Derived from Table V, Wang et al. T-ITS 22(9) 2021
+# ================================================================
+model:
+  - model_name: RF_baseline_v1
+    description: >
+      Random Forest baseline reproduced exactly from the paper’s
+      parameter list (Size of bag: all data; iterations: 100; attributes per
+      split: 0; min leaf size: 1; min variance for split: default).
+
+    # ---------- 数据相关 ----------
+    window_size: 300        # 与 cnn_test.py 保持一致
+    overlap: 0.3            # 30% 重叠
+    num_elements: 20        # 每个样本 20 通道
+    num_classes: 8
+
+    # ---------- Random Forest 参数 ----------
+    rf_params:
+      n_estimators:            100         # number of iterations
+      bootstrap:               true        # bag size = 全数据
+      max_samples:             null        # None → 使用 n_samples
+      max_features:            null        # 0 → 使用全部特征
+      min_samples_leaf:        1
+      min_impurity_decrease:   0.0
+      criterion:               "gini"
+      random_state:            42
+      n_jobs:                 -1
+
+    # ---------- 日志与模型输出 ----------
+    log_dir:  "localExperiments/logs"
+    ckpt_dir: "localExperiments/model_result/RF_result"
