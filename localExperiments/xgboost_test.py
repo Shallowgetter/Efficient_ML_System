@@ -38,8 +38,8 @@ from preprocessing.getDataset import SHLConfig, process_and_save_dataset  # noqa
 CFG_RAW_ROOT = Path("/Users/xiangyifei/Documents/HPC_Efficient_Computing_System/dataset/SHL")               # ← EDIT ME
 OUTPUT_DIR = Path("localExperiments/model_result/XGBoost_result")                      # artefacts
 WINDOW_SIZE = 500                                            # 5 s @ 100 Hz
-OVERLAP = 0.3                                                # 30 % window overlap
-TRAIN_RATIO = 0.8                                            # 80 / 20 split when
+OVERLAP = 0.0                                               # 0 % window overlap
+TRAIN_RATIO = 0.7                                          # 87 / 30 split when
                                                              # constructing NPZ
 SEED = 42
 

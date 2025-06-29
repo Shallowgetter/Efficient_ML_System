@@ -7,13 +7,14 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
 from model.cnn import CNN
-from preprocessing.getDataset import get_npz_dataloader, get_mag_dataloader
+from torch.utils.data import DataLoader
 from utils.utils import get_logger, save_checkpoint, AverageMeter, plot_confusion_matrix
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, f1_score
 import random
+import time
 
 from sklearn.model_selection import KFold
 from torch.utils.data import TensorDataset, Subset, DataLoader
@@ -25,7 +26,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="CNN Training Script")
     parser.add_argument('--config', type=str, default='localExperiments/model_param/mlp_cnn_params.yaml',
                         help='Path to configuration file')
-    parser.add_argument('--model_name', type=str, default='CNN_test_1',
+    parser.add_argument('--model_name', type=str, default='CNN_test_v1',
                         help='Model name as specified in the configuration file')
     return parser.parse_args()
 
@@ -57,7 +58,7 @@ def evaluate(model, data_loader, device, criterion):
             inputs = inputs.float().to(device)
             targets = targets.long().to(device)
 
-            targets = targets - 1  # Adjust to CrossEntropy's 0-based indexing
+            # targets = targets - 1  # Adjust to CrossEntropy's 0-based indexing
 
             outputs = model(inputs)
             
@@ -99,25 +100,62 @@ def train_model(config):
     logger.info(f"Configuration: {config}")
 
     # Get data loaders
-    if config['dataLoader'] == 'get_npz_dataloader':
-        data_loader_func = get_npz_dataloader
-    elif config['dataLoader'] == 'get_mag_dataloader':
-        data_loader_func = get_mag_dataloader
-    else:
-        raise ValueError(f"Unknown dataLoader: {config['dataLoader']}")
+    # if config['dataLoader'] == 'get_npz_dataloader':
+    #     data_loader_func = get_npz_dataloader
+    # elif config['dataLoader'] == 'get_mag_dataloader':
+    #     data_loader_func = get_mag_dataloader
+    # else:
+    #     raise ValueError(f"Unknown dataLoader: {config['dataLoader']}")
     
-    train_loader = data_loader_func(
-        npz_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/shl_train.npz",
-        batch_size=config['batch_size'],
-        shuffle=True,
-        num_workers=0
-    )
+    # train_loader = data_loader_func(
+    #     npz_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/shl_train.npz",
+    #     batch_size=config['batch_size'],
+    #     shuffle=True,
+    #     num_workers=0
+    # )
 
-    val_loader = data_loader_func(
-        npz_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/shl_validation.npz",
+    # val_loader = data_loader_func(
+    #     npz_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/shl_validation.npz",
+    #     batch_size=config['batch_size'],
+    #     shuffle=False,
+    #     num_workers=0
+    # )
+
+    train_data = np.load('data/SHL_2018/all_data_train_0.5_window_300_overlap_0.3.npz')
+    train_x = torch.FloatTensor(train_data['x'])
+    train_y_raw = train_data['y']
+
+    # if one-hot encoded, convert to class indices
+    if len(train_y_raw.shape) > 1 and train_y_raw.shape[1] > 1:
+        train_y = torch.LongTensor(np.argmax(train_y_raw, axis=1))
+        print("Converting from one-hot to class indices")
+    else:
+        train_y = torch.LongTensor(train_y_raw)
+        print("Using original labels as class indices")
+
+    train_dataset = TensorDataset(train_x, train_y)
+
+    test_data = np.load('data/SHL_2018/all_data_test_0.5_window_300_overlap_0.3.npz')
+    test_x = torch.FloatTensor(test_data['x'])
+    test_y_raw = test_data['y']
+
+    if len(test_y_raw.shape) > 1 and test_y_raw.shape[1] > 1:
+        test_y = torch.LongTensor(np.argmax(test_y_raw, axis=1))
+    else:
+        test_y = torch.LongTensor(test_y_raw)
+
+    test_dataset = TensorDataset(test_x, test_y)
+
+    train_loader = DataLoader(
+        train_dataset,
         batch_size=config['batch_size'],
-        shuffle=False,
-        num_workers=0
+        shuffle=True
+)
+
+    val_loader = DataLoader(
+        test_dataset,
+        batch_size=config['batch_size'],
+        shuffle=False
     )
 
     logger.info(f"Train loaded: {len(train_loader)} batches")
@@ -152,7 +190,7 @@ def train_model(config):
             inputs = inputs.float().to(device)
             targets = targets.long().to(device)
 
-            targets = targets - 1 # Adjust to CrossEntropy's 0-based indexing
+            # targets = targets - 1 # Adjust to CrossEntropy's 0-based indexing
 
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -224,7 +262,6 @@ def result_validation(config, fold=None):
         # Choose the best fold automatically
         best_acc = 0.0
         best_path = os.path.join(ckpt_dir, f"{config['model_name']}_best.pth")
-        # 省略部分代码...
         
         assert best_path is not None, f"Found no valid model checkpoints for {config['model_name']}"
         logger.info(f"Automatically selected best fold: fold{fold} (Validation accuracy: {best_acc:.2f}%)")
@@ -237,18 +274,23 @@ def result_validation(config, fold=None):
     logger.info(f"Loaded fold{fold} model: ValAcc in training ={checkpoint['accuracy']:.2f}%")
 
     # ---------- 2. 使用一致的数据加载器 ----------
-    if config['dataLoader'] == 'get_npz_dataloader':
-        data_loader_func = get_npz_dataloader
-    elif config['dataLoader'] == 'get_mag_dataloader':
-        data_loader_func = get_mag_dataloader
+    val_data = np.load('data/SHL_2018/all_data_test_0.5_window_300_overlap_0.3.npz')
+    val_x = torch.FloatTensor(val_data['x'])
+    val_y_raw = val_data['y']
+
+    # if one-hot encoded, convert to class indices
+    if len(val_y_raw.shape) > 1 and val_y_raw.shape[1] > 1:
+        val_y = torch.LongTensor(np.argmax(val_y_raw, axis=1))
+        logger.info("Converting from one-hot to class indices")
     else:
-        raise ValueError(f"Unknown dataLoader: {config['dataLoader']}")
-    
-    val_loader = data_loader_func(
-        npz_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/shl_validation.npz",
+        val_y = torch.LongTensor(val_y_raw)
+        logger.info("Using original labels as class indices")
+
+    val_dataset = TensorDataset(val_x, val_y)
+    val_loader = DataLoader(
+        val_dataset,
         batch_size=config['batch_size'],
-        shuffle=False,
-        num_workers=0
+        shuffle=False
     )
 
     logger.info(f"Validation data loaded: {len(val_loader)} batches")
@@ -258,21 +300,40 @@ def result_validation(config, fold=None):
     val_loss, val_acc = evaluate(model, val_loader, device, criterion)
     logger.info(f"Validation Loss={val_loss:.4f}  Accuracy={val_acc:.2f}%")
 
-    # ---------- Confusion Matrix ----------
+    # ---------- Detailed evaluation with F1 score and inference time ----------
     all_preds, all_true = [], []
+    inference_times = []
+    
     with torch.no_grad():
         for inputs, targets in val_loader:
             inputs, targets = inputs.to(device), targets.to(device)
-            # 调整标签与evaluate函数一致
-            targets_adjusted = targets - 1  # 调整到0-7范围
+            
+            # Measure inference time
+            start_time = time.time()
             outputs = model(inputs)
+            end_time = time.time()
+            
+            batch_inference_time = (end_time - start_time) / inputs.size(0)  # Per sample
+            inference_times.extend([batch_inference_time] * inputs.size(0))
+            
             preds = outputs.argmax(dim=1).cpu().numpy()
             all_preds.extend(preds)
-            all_true.extend(targets_adjusted.cpu().numpy())
+            all_true.extend(targets.cpu().numpy())
+
+    # Calculate F1 score
+    f1_macro = f1_score(all_true, all_preds, average='macro')
+    f1_weighted = f1_score(all_true, all_preds, average='weighted')
+    
+    # Calculate average inference time
+    avg_inference_time = np.mean(inference_times) * 1000  # Convert to milliseconds
+    
+    logger.info(f"F1 Score (Macro): {f1_macro:.4f}")
+    logger.info(f"F1 Score (Weighted): {f1_weighted:.4f}")
+    logger.info(f"Average Inference Time: {avg_inference_time:.4f} ms per sample")
 
     # 确保类别标签是0-7范围内的整数
-    class_names = [str(i+1) for i in range(8)]  # 使用1-8作为显示的类别名称
-    
+    class_names = [str(i) for i in range(8)]  # 使用0-7作为显示的类别名称
+
     # 调用混淆矩阵绘制函数
     cm = confusion_matrix(all_true, all_preds, labels=range(8))  # 明确指定标签范围
     ax = plot_confusion_matrix(
@@ -283,7 +344,7 @@ def result_validation(config, fold=None):
         fontsize=18
     )
     
-    plt.title(f'Confusion Matrix – {config["model_name"]}\nValAcc {val_acc:.2f}%')
+    plt.title(f'Confusion Matrix – {config["model_name"]}\nValAcc {val_acc:.2f}% | F1 {f1_macro:.4f}')
     results_dir = "localExperiments/model_result/cnn_confusion_matrix_plots"
     os.makedirs(results_dir, exist_ok=True)
     fig_path = os.path.join(results_dir, f"{config['model_name']}_val_cm.png")
@@ -296,6 +357,16 @@ def result_validation(config, fold=None):
     for i, cls in enumerate(class_names):
         cls_acc = cm[i, i] / cm[i].sum() if cm[i].sum() else 0
         logger.info(f"Class {cls}: {cls_acc:.4f}")
+    
+    # ---------- 6. Summary ----------
+    logger.info("=" * 50)
+    logger.info("VALIDATION SUMMARY")
+    logger.info("=" * 50)
+    logger.info(f"Validation Accuracy: {val_acc:.2f}%")
+    logger.info(f"F1 Score (Macro): {f1_macro:.4f}")
+    logger.info(f"F1 Score (Weighted): {f1_weighted:.4f}")
+    logger.info(f"Average Inference Time: {avg_inference_time:.4f} ms per sample")
+    logger.info("=" * 50)
 
 
 if __name__ == "__main__":

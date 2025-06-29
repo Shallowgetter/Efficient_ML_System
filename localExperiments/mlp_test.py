@@ -25,7 +25,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="MLP Training Script")
     parser.add_argument('--config', type=str, default='localExperiments/model_param/mlp_cnn_params.yaml',
                         help='Path to configuration file')
-    parser.add_argument('--model_name', type=str, default='MLP_test_1',
+    parser.add_argument('--model_name', type=str, default='TinyCNN_test_v1',
                         help='Model name as specified in the configuration file')
     return parser.parse_args()
 
@@ -57,7 +57,7 @@ def evaluate(model, data_loader, device, criterion):
             inputs = inputs.float().to(device)
             targets = targets.long().to(device)
 
-            targets = targets - 1  # Adjust to CrossEntropy's 0-based indexing
+            # targets = targets - 1  # Adjust to CrossEntropy's 0-based indexing
 
             outputs = model(inputs)
             
@@ -152,7 +152,7 @@ def train_model(config):
             inputs = inputs.float().to(device)
             targets = targets.long().to(device)
 
-            targets = targets - 1 # Adjust to CrossEntropy's 0-based indexing
+            # targets = targets - 1 # Adjust to CrossEntropy's 0-based indexing
 
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -374,11 +374,11 @@ def result_validation(config, fold=None):
         for inputs, targets in val_loader:
             inputs, targets = inputs.to(device), targets.to(device)
             # 调整标签与evaluate函数一致
-            targets_adjusted = targets - 1  # 调整到0-7范围
+            # targets_adjusted = targets - 1  # 调整到0-7范围
             outputs = model(inputs)
             preds = outputs.argmax(dim=1).cpu().numpy()
             all_preds.extend(preds)
-            all_true.extend(targets_adjusted.cpu().numpy())
+            all_true.extend(targets.cpu().numpy())
 
     # 确保类别标签是0-7范围内的整数
     class_names = [str(i+1) for i in range(8)]  # 使用1-8作为显示的类别名称
@@ -412,7 +412,7 @@ if __name__ == "__main__":
     args = parse_arguments()
     cfg = load_config(args.config, args.model_name)
     
-    # train_model(cfg)
+    train_model(cfg)
     # train_model_cv(cfg, folds=5, seed=2025)   
 
     result_validation(cfg, fold=None)

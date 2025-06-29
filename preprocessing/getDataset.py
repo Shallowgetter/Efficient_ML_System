@@ -24,7 +24,7 @@ class SHLConfig:
         "SHLDataset_preview_v1_3",
     )
     positions: Tuple[str, ...] = ("Hand", "Bag", "Hips", "Torso")
-    window_size: int = 500          # 5 s * 100 Hz
+    window_size: int = 300          # 3 s * 100 Hz
     step_size: Optional[int] = None  # If None, calculated from overlap
     overlap: float = 0.0            # overlap for window between 0.0 and 1.0
     label_type: str = "coarse"      # "coarse" or "fine"
@@ -189,9 +189,7 @@ def process_and_save_dataset(cfg: SHLConfig,
             filtered_data = data[valid_indices] if cfg.drop_null else data
             filtered_labels = labels[valid_indices] if cfg.drop_null else labels
 
-            normalized_data = normalize_features(filtered_data)
-
-            data = normalized_data
+            data = filtered_data
             labels = filtered_labels
 
         except (FileNotFoundError, ValueError):
@@ -223,23 +221,28 @@ def process_and_save_dataset(cfg: SHLConfig,
     target_train_dirs = int(len(dir_info) * train_ratio)
     
     # Balance the number of training and test directories
-    sorted_dir_info = sorted(dir_info, key=lambda x: len(x["data"]))
+    rng.shuffle(dir_info)  
     
-    train_bins = sorted_dir_info[:target_train_dirs]
-    test_bins = sorted_dir_info[target_train_dirs:]
+    target_train_dirs = int(len(dir_info) * train_ratio)
+    train_bins = dir_info[:target_train_dirs]  # random sample → both long and short recordings
+    test_bins  = dir_info[target_train_dirs:]
 
     # Ensure training set contains all labels
-    train_label_set = set().union(*[d["unique_labels"] for d in train_bins])
-    missing_labels = all_labels_set - train_label_set
-    
-    if missing_labels:
-        # Move directories containing missing labels from test to train
-        for lbl in list(missing_labels):
-            for idx, info in enumerate(test_bins):
-                if lbl in info["unique_labels"]:
-                    train_bins.append(info)
-                    test_bins.pop(idx)
+    train_labels = set().union(*(d["unique_labels"] for d in train_bins))
+    if train_labels != all_labels_set:
+        # Try to balance the training set by moving test bins
+        missing = all_labels_set - train_labels
+        for d in test_bins[:]:                
+            if d["unique_labels"] & missing:
+                train_bins.append(d)
+                test_bins.remove(d)
+                train_labels.update(d["unique_labels"])
+                missing = all_labels_set - train_labels
+                if not missing:
                     break
+        if missing:
+            raise RuntimeError(f"Cannot cover class within current division {missing}，"
+                            "Please check the integrity of the original data.")
 
         # Re-check
         train_label_set = set().union(*[d["unique_labels"] for d in train_bins])
@@ -260,16 +263,27 @@ def process_and_save_dataset(cfg: SHLConfig,
     train_data, train_labels = _concat_recordings(train_bins)
     test_data, test_labels = _concat_recordings(test_bins)
 
+    # Here normalize the features
+    global_mean = np.mean(train_data, axis=0)
+    global_std = np.std(train_data, axis=0)
+    global_std[global_std == 0] = 1.0  # Avoid division by zero
+    train_data = (train_data - global_mean) / global_std
+    test_data = (test_data - global_mean) / global_std
+
+    print("Normalized training data slice: ", train_data[:5])
+    print("Normalized test data slice: ", test_data[:5])
+
     out_dir = Path(output_path)
     out_dir.mkdir(parents=True, exist_ok=True)
-
-    # Map labels to 0-indexed integers
-    # train_labels_mapped = train_labels - 1
-    # test_labels_mapped = test_labels - 1
 
     # Here if -1 -> previous 0 become -1
     train_labels_mapped = train_labels.copy()
     test_labels_mapped = test_labels.copy()
+
+    train_labels_mapped = train_labels_mapped - 1
+    test_labels_mapped = test_labels_mapped - 1
+    print("Train Unique Labels:", sorted(set(train_labels_mapped)))
+    print("Test Unique Labels:", sorted(set(test_labels_mapped)))
 
     # Save as NPZ files without windowing 
     np.savez(out_dir / "shl_train.npz", 
@@ -518,7 +532,7 @@ class SHLNpzDataset(Dataset):
     
     def __init__(self, 
                  npz_path: str,
-                 window_size: int = 500,
+                 window_size: int = 300,
                  overlap: float = 0.0,
                  dtype: torch.dtype = torch.float32,
                  transform=None):
@@ -581,7 +595,7 @@ def get_npz_dataloader(npz_path: str,
                        batch_size: int = 32,
                        shuffle: bool = True,
                        num_workers: int = 4,
-                       window_size: int = 500,
+                       window_size: int = 300,
                        overlap: float = 0.0,
                        dtype: torch.dtype = torch.float32,
                        transform=None) -> DataLoader:
@@ -627,7 +641,7 @@ if __name__ == "__main__":
     # Define the configuration
     cfg = SHLConfig(
         root=Path("/Users/xiangyifei/Documents/HPC_Efficient_Computing_System/dataset/SHL"),
-        window_size=500,
+        window_size=300,
         overlap=0.0
         )
     
@@ -635,7 +649,7 @@ if __name__ == "__main__":
     process_and_save_dataset(
         cfg=cfg,
         output_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data",
-        train_ratio=0.7
+        train_ratio=0.6
     )
     
     # load the dataset using DataLoader

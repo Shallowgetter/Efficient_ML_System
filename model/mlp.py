@@ -22,4 +22,19 @@ class MLP(torch.nn.Module):
 
     def forward(self, x):
         x = x.view(x.size(0), -1)
-        return self.classifier(x)                  
+        return self.classifier(x)  
+
+
+class TinyCNN(torch.nn.Module):
+    def __init__(self, in_ch=36, n_cls=8):
+        super().__init__()
+        self.net = torch.nn.Sequential(
+            torch.nn.Conv1d(in_ch, 64, 5, padding=2),
+            torch.nn.BatchNorm1d(64), torch.nn.ReLU(),
+            torch.nn.Conv1d(64,128,5,padding=2),
+            torch.nn.BatchNorm1d(128), torch.nn.ReLU(),
+            torch.nn.AdaptiveAvgPool1d(1),
+        )
+        self.fc = torch.nn.Linear(128, n_cls)
+    def forward(self,x):             # x:(B,C,T)
+        return self.fc(self.net(x).squeeze(-1))                
