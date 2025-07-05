@@ -94,15 +94,15 @@ class RNNStack(nn.Module):
 
         self.rnn1 = RNN(input_size=3,  hidden_size=32, batch_first=True)
         self.bn1  = nn.BatchNorm1d(32)
-        self.dp1  = nn.Dropout(0.02)
+        self.dp1  = nn.Dropout(0.2)
 
         self.rnn2 = RNN(input_size=32, hidden_size=16, batch_first=True)
         self.bn2  = nn.BatchNorm1d(16)
-        self.dp2  = nn.Dropout(0.02)
+        self.dp2  = nn.Dropout(0.2)
 
         self.rnn3 = RNN(input_size=16, hidden_size=8,  batch_first=True)
         self.bn3  = nn.BatchNorm1d(8)
-        self.dp3  = nn.Dropout(0.02)
+        self.dp3  = nn.Dropout(0.2)
 
         self.fc   = nn.Linear(8, 3)
 
