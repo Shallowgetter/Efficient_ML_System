@@ -259,3 +259,58 @@ def plot_confusion_matrix(test_y,pred_y,class_names,normalize=False, fontsize=24
     
     print(f1_score(test_y, pred_y, average='macro'))
     return ax
+
+
+def select_certain_classes(npz_path, selected_classes=None):
+    """
+    Args:
+        npz_path (str): Path to the .npz file containing the dataset.
+        selected_classes (list, optional): List of class indices to select. If None, all classes are selected.
+        
+    Returns:
+        dict: A dictionary containing the selected data.
+    """
+    if selected_classes is None:
+        selected_classes = [
+            "gyr_x", "gyr_y", "gyr_z",
+            "lacc_x", "lacc_y", "lacc_z",
+            "mag_x", "mag_y", "mag_z",
+            "pressure"
+        ]
+
+    original_features = [
+        "acc_x", "acc_y", "acc_z",
+        "gra_x", "gra_y", "gra_z", 
+        "gyr_x", "gyr_y", "gyr_z",
+        "lacc_x", "lacc_y", "lacc_z",
+        "mag_x", "mag_y", "mag_z",
+        "ori_w", "ori_x", "ori_y", "ori_z",
+        "pressure"
+    ]
+
+    selected_indices = []
+    for feat in selected_classes:
+        try:
+            idx = original_features.index(feat)
+            selected_indices.append(idx)
+        except ValueError:
+            print(f"Warning: class '{feat}' not found in original feature list, skipping it.")
+            continue
+
+    if not selected_indices:
+        raise ValueError("Found no valid classes to select. Please check the selected_classes list.")
+
+    print(f"Selected features: {[original_features[i] for i in selected_indices]}")
+    print(f"Corresponding indices: {selected_indices}")
+
+    data = np.load(npz_path)
+    x = data['x']  # shape: (n_samples, window_size, 20)
+    y = data['y']  # shape: (n_samples, num_classes)
+
+    print(f"Original data shape: {x.shape}")
+    
+    x_selected = x[:, :, selected_indices]  # shape: (n_samples, window_size, len(selected_indices))
+
+    print(f"Extracted data shape: {x_selected.shape}")
+
+    return {'x': x_selected, 'y': y}

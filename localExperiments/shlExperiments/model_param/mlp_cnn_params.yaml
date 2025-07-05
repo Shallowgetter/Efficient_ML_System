@@ -1,0 +1,49 @@
+model:
+ - name: MLP
+   model_name: MLP_test_v1 # This is the name of the model, not the type of model
+   dataLoader: 'get_npz_dataloader'
+   input_size: 6000 # 300 * 20
+   lr: 0.001
+   batch_size: 1024
+   criterion: 'CrossEntropyLoss'
+   optimizer: 'AdamW'
+   scheduler: 'CosineAnnealingLR'
+   epochs: 100
+   dropout: 0.2
+
+ - name: MLP
+   model_name: MLP_test_v2
+   dataLoader: 'get_mag_dataloader'
+   input_size: 3600 # 300*12 -> 500*12
+   lr: 0.001
+   batch_size: 1024
+   criterion: 'CrossEntropyLoss'
+   optimizer: 'AdamW'
+   epochs: 100
+   dropout: 0.2
+
+ - name: CNN
+   model_name: CNN_test_v1
+   dataLoader: 'get_npz_dataloader'
+   num_elements: 20
+   window_size: 300
+   num_classes: 8
+   lr: 0.001
+   batch_size: 1024
+   criterion: 'CrossEntropyLoss'
+   optimizer: 'AdamW'
+   epochs: 100
+   dropout: 0.2
+
+ - name: CNN
+   model_name: CNN_test_v2
+   dataLoader: 'get_npz_dataloader'
+   num_elements: 10
+   window_size: 300
+   num_classes: 8
+   lr: 0.001
+   batch_size: 1024
+   criterion: 'CrossEntropyLoss'
+   optimizer: 'AdamW'
+   epochs: 100
+   dropout: 0.2

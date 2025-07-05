@@ -1,0 +1,15 @@
+dataset:
+  root: "/Users/xiangyifei/Documents/HPC_Efficient_Computing_System/dataset/eTraM"       
+  split: "train"              # train | val | test
+  window_sec: 0.20            # Δt：单个时间窗长度 (s)
+  stride_sec: 0.10            # δ：滑窗步长 (s)
+  seq_len: 10                 # t：序列长度 (窗口个数) → 总时长 = t*Δt
+  time_bins: 5                # K：将 Δt 再分成 K 个体素 bin
+  resize: 128                 # 裁剪后缩放到 H=W=resize
+  crop_expand: 10             # bbox 四周额外扩张像素
+  min_track_frames: 20        # 仅使用 ≥min_track_frames 的 object 轨迹
+dataloader:
+  batch_size: 8
+  num_workers: 4
+misc:
+  device: "cuda"

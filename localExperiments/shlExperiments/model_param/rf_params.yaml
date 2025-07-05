@@ -1,0 +1,52 @@
+# ================================================================
+# RandomForest — Transportation-Mode 8-Class Baseline
+# ================================================================
+model:
+  - model_name: RF_gpu_test_v1
+
+    window_size: 300       
+    overlap: 0.3
+    num_elements: 20
+    num_class: 8
+
+    batch_size: 8192       
+    epochs: 1
+    criterion: null
+    optimizer: null
+    lr: 0.0
+
+    rf_params:
+      n_estimators: 100
+      max_features: 'auto'     
+      bootstrap: true          
+      min_samples_leaf: 1
+      min_impurity_decrease: 0.0
+      random_state: 42
+
+    log_dir:  "localExperiments/logs"
+    ckpt_dir: "localExperiments/model_result/RF_gpu_result"
+
+
+  - model_name: RF_test_v2
+
+    window_size: 450     
+    overlap: 0.0
+    num_elements: 20
+    num_class: 8
+
+    batch_size: 4096      
+    epochs: 1
+    criterion: null
+    optimizer: null
+    lr: 0.0
+
+    rf_params:
+      n_estimators: 10
+      max_features: 50     
+      bootstrap: true          
+      min_samples_leaf: 1
+      min_impurity_decrease: 0.0
+      random_state: 42
+
+    log_dir:  "localExperiments/logs"
+    ckpt_dir: "localExperiments/model_result/RF_gpu_result"
