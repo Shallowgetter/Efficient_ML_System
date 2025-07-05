@@ -122,7 +122,8 @@ def build_backbone(name: str):
         )
     elif name == "mobilenet":
         model = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V2)
-        num_ftrs = model.classifier[-1].in_features
+        # MobileNetV3 的 classifier 结构: [Linear(960, 1280), Hardswish(), Dropout(0.2), Linear(1280, 1000)]
+        num_ftrs = model.classifier[0].in_features  # 960
         model.classifier = nn.Sequential(
             nn.Linear(num_ftrs, 64), nn.BatchNorm1d(64),
             nn.ReLU(inplace=True), nn.Dropout(0.2),
@@ -130,7 +131,8 @@ def build_backbone(name: str):
         )
     elif name == "mobilenetv2":
         model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.IMAGENET1K_V1)
-        num_ftrs = model.classifier[-1].in_features
+        # MobileNetV2 的 classifier 结构: [Dropout(0.2), Linear(1280, 1000)]
+        num_ftrs = model.classifier[1].in_features  # 1280
         model.classifier = nn.Sequential(
             nn.Linear(num_ftrs, 64), nn.BatchNorm1d(64),
             nn.ReLU(inplace=True), nn.Dropout(0.2),
