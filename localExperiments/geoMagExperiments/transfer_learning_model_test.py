@@ -47,7 +47,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger.info(f"Device: {DEVICE}")
 
 # ---------------- 2. load image dataset ------------------------------------
-IMG_NPZ = "/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/geoMag/geoMagDataset_img.npz"    # produced by updated getDataset.py
+IMG_NPZ = "data/geoMag/geoMagDataset_img.npz"    # produced by updated getDataset.py
 logger.info(f"Loading image dataset: {IMG_NPZ}")
 img_data = np.load(IMG_NPZ)
 X_train_img = img_data["X_train_img"]   # (621, 216,216,3) uint8
@@ -171,8 +171,10 @@ def train(model, name, epochs=50):
     logger.info(f"--- Training {name} ---")
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.classifier.parameters(),
-                                 lr=1e-2, weight_decay=1e-4)
+                                 lr=1e-3, weight_decay=1e-4)
     hist = {"tr": [], "val": []}
+    best_val_loss = float('inf')
+    
     for ep in range(1, epochs+1):
         model.train(); running = 0.0
         for xb, yb in dl_train:
@@ -194,10 +196,29 @@ def train(model, name, epochs=50):
         if ep % 10 == 0 or ep <= 5:
             logger.info(f"{name}  Epoch {ep:02d}  Train {tr_loss:.4f}  Val {val_loss:.4f}")
 
-        chk = os.path.join(CHECKPOINT_DIR, f"{name}_ep{ep:02d}.pth")
-        save_checkpoint(model, optimizer, ep, val_loss, chk)
-    # save final
+        # 使用 utils 的 save_checkpoint 函数
+        chk_filename = os.path.join(CHECKPOINT_DIR, f"{name}_ep{ep:02d}.pth")
+        is_best = val_loss < best_val_loss
+        if is_best:
+            best_val_loss = val_loss
+            
+        best_filename = os.path.join(CHECKPOINT_DIR, f"{name}_best.pth")
+        save_checkpoint(
+            model=model,
+            optimizer=optimizer,
+            epoch=ep,
+            loss=val_loss,
+            filename=chk_filename,
+            is_best=is_best,
+            best_filename=best_filename
+        )
+        
+        if is_best:
+            logger.info(f"{name}  New best model at epoch {ep} with val_loss: {val_loss:.4f}")
+    
+    # 保存最终模型状态字典
     torch.save(model.state_dict(), os.path.join(RESULT_DIR, f"{name}.pth"))
+    logger.info(f"{name} training completed. Best val_loss: {best_val_loss:.4f}")
     return hist
 
 @torch.no_grad()

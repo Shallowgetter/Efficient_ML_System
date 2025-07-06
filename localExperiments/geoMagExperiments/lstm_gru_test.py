@@ -1,4 +1,3 @@
-# seq_baselines.py
 # Reproduce Table-5 LSTM / GRU baseline models 
 import os, random, time, sys
 
@@ -111,19 +110,15 @@ class RNNStack(nn.Module):
         return bn_layer(x.transpose(1, 2)).transpose(1, 2)
 
     def forward(self, x):
-        # Layer-1 -----------------------------------------------------------
         o, _ = self.rnn1(x)                     # (B,T,32)
         o    = self.dp1(self._bn_time(o, self.bn1))
 
-        # Layer-2 -----------------------------------------------------------
         o, _ = self.rnn2(o)                    # (B,T,16)
         o    = self.dp2(self._bn_time(o, self.bn2))
 
-        # Layer-3 -----------------------------------------------------------
         o, _ = self.rnn3(o)                    # (B,T,8)
         o    = self.dp3(self._bn_time(o, self.bn3))
 
-        # take last time-step
         out  = self.fc(o[:, -1, :])            # (B,3)
         return out
 
