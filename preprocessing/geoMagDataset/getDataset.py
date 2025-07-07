@@ -24,161 +24,165 @@ except ImportError as e:
     ) from e
 
 
-def get_dataset(
-    csv_cls: str = "/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/preprocessing/geoMagDataset/class3.csv",
-    npz_path: str = "/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/geoMag/geoMagDataset.npz",
-    test_ratio: float = 0.30,
-    random_state: int = 42,
-):
-    # 1. Load data and shuffle ------------------------------------------------
+# -----------------------------------------------------------------------------
+#                           Helper: Numeric Pipeline
+# -----------------------------------------------------------------------------
+def _prepare_numeric_dataset(csv_cls, test_ratio, random_state):
+    """
+    Load raw CSV, Min-Max scale, stratified split, label-encode, SMOTE.
+    Returns:
+        X_tr_res (np.float32), y_tr_res (np.int64),
+        X_te     (np.float32), y_te_int (np.int64),
+        le       (LabelEncoder fitted on training labels)
+    """
+    # 1. Load and shuffle
     df = pd.read_csv(csv_cls, header=None).sample(frac=1, random_state=random_state)
-    df = df[0].str.split(";", expand=True)         # split into 622 columns
-    y = df[621]                                    # column 622 is the label
-    X = df.drop(columns=[621]).astype(float)       # retain 0–620 => 621 features
-
+    df = df[0].str.split(";", expand=True)
+    y = df[621]
+    X = df.drop(columns=[621]).astype(float)
     print("— Original data shape —")
-    print(f"X: {X.shape} | y: {y.shape}")          # (376, 621)
+    print(f"X: {X.shape} | y: {y.shape}")
 
-    # 2. Min-Max scaling ------------------------------------------------------
+    # 2. Min-Max scaling
     scaler = preprocessing.MinMaxScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # 3. Stratified train/test split -----------------------------------------
+    # 3. Stratified train/test split
     X_tr, X_te, y_tr, y_te = train_test_split(
-        X_scaled,
-        y,
+        X_scaled, y,
         test_size=test_ratio,
         random_state=random_state,
         stratify=y,
     )
-    print(f"Train X: {X_tr.shape} | Test X: {X_te.shape}")  # (263, 621)/(113, 621)
+    print(f"Train X: {X_tr.shape} | Test X: {X_te.shape}")
 
-    # 4. Integer label encoding ----------------------------------------------
+    # 4. Integer label encoding
     le = LabelEncoder()
     y_tr_int = le.fit_transform(y_tr)
     y_te_int = le.transform(y_te)
 
-    # 5. SMOTE oversampling (train set only) ----------------------------------
+    # 5. SMOTE oversampling (train only)
     smote = SMOTE(random_state=random_state, k_neighbors=5)
     X_tr_res, y_tr_res = smote.fit_resample(X_tr, y_tr_int)
+    print("SMOTE class distribution:", np.bincount(y_tr_res))
 
-    print("SMOTE class distribution:", np.bincount(y_tr_res))  # [207 207 207]
-
-    # 6. Save to NPZ ----------------------------------------------------------
-    np.savez_compressed(
-        npz_path,
-        X_train=X_tr_res.astype(np.float32),
-        y_train=y_tr_res.astype(np.int64),
-        X_test=X_te.astype(np.float32),
-        y_test=y_te_int.astype(np.int64),
-        classes=le.classes_,
+    return (
+        X_tr_res.astype(np.float32),
+        y_tr_res.astype(np.int64),
+        X_te.astype(np.float32),
+        y_te_int.astype(np.int64),
+        le,
     )
-    print(f"Data saved to {npz_path}")
 
-    return X_tr_res, y_tr_res, X_te, y_te_int, le
-
-# -------------------------- image-conversion utils -------------------------- #
-# Color lookup table (BGR order → later np.flip for RGB) — values 0-255
-COLORS = {
-    0b000: (255,   0,   0),   # Blue
-    0b001: (255,   0, 255),   # Purple  (X only)
-    0b010: (  0,   0, 255),   # Red     (Y only)
-    0b100: (  0, 255,   0),   # Green   (Z only)
-    0b011: (  0,   0,   0),   # Black   (X+Y)
-    0b101: (  0, 128, 128),   # Olive   (X+Z)
-    0b110: (255, 255,   0),   # Turquoise (Y+Z)
-    0b111: (255, 255, 255),   # White   (X+Y+Z)
+# -----------------------------------------------------------------------------
+#                      Signal-to-Image Conversion
+# -----------------------------------------------------------------------------
+# Color lookup table: mask (0–7) → (B, G, R)
+_COLORS = {
+    0: (255,   0,   0),   # background (Blue)
+    1: (255,   0, 255),   # X only     (Purple)
+    2: (  0,   0, 255),   # Y only     (Red)
+    3: (  0,   0,   0),   # X+Y        (Black)
+    4: (  0, 255,   0),   # Z only     (Green)
+    5: (  0, 128, 128),   # X+Z        (Olive)
+    6: (255, 255,   0),   # Y+Z        (Turquoise)
+    7: (255, 255, 255),   # X+Y+Z      (White)
 }
 
-def signal_to_image(vec621: np.ndarray, thresh: float = 0.0) -> np.ndarray:
+def signal_to_image(vec621: np.ndarray, height: int = 216) -> np.ndarray:
     """
-    Convert flattened 621-dim vector -> 216×216×3 RGB uint8 image.
-    A column's color is chosen by which axes (X,Y,Z) lie *under the curve*
-    at that timestep.
-    Args
-    ----
-    vec621 : (621,)  flattened sequence  x0,y0,z0,x1,...
-    thresh : float   threshold to decide “under curve”. 0 works because
-                     signals are Min-Max scaled to [0,1].
-    Returns
-    -------
-    img : (216,216,3)  uint8 RGB
+    Convert a 621-dim flattened signal (207×3) into a (height×216×3) RGB image
+    by filling the area under each curve (X, Y, Z) with distinct colors.
     """
-    seq = vec621.reshape(207, 3)          # (T,3)  -> time major
-    img  = np.zeros((216, 216, 3), dtype=np.uint8)
+    seq = vec621.reshape(207, 3)
+    width = 207
+    img = np.zeros((height, 216, 3), dtype=np.uint8)
 
-    for t in range(207):
-        x, y, z = seq[t]
-        mask = ((x > thresh) << 0) | ((y > thresh) << 1) | ((z > thresh) << 2)
-        color = COLORS[mask]
-        img[:, t, :] = color[::-1]        # convert BGR→RGB when assigning
+    # compute pixel heights per axis per time step
+    pixel_heights = (seq * (height - 1)).round().astype(int)
 
-    # pad rightmost 9 columns with last color
+    # build a mask image: each pixel stores bits for X(1), Y(2), Z(4)
+    mask = np.zeros((height, width), dtype=np.uint8)
+    for t in range(width):
+        for axis in range(3):
+            h = pixel_heights[t, axis]
+            start_row = height - 1 - h
+            mask[start_row:, t] |= (1 << axis)
+
+    # map mask→color
+    for m_val, bgr in _COLORS.items():
+        ys, xs = np.where(mask == m_val)
+        if ys.size > 0:
+            # assign RGB by reversing BGR
+            img[ys, xs, 0] = bgr[2]
+            img[ys, xs, 1] = bgr[1]
+            img[ys, xs, 2] = bgr[0]
+
+    # pad rightmost columns
     img[:, 207:, :] = img[:, 206:207, :]
     return img
 
 
 # ------------------------------- main pipeline ------------------------------ #
-def get_imageDataset(
-    csv_cls: str = "/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/preprocessing/geoMagDataset/class3.csv",
-    npz_path: str = "/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/geoMag/geoMagDataset.npz",
-    npz_img_path: str = "/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/geoMag/geoMagDataset_img.npz",
+# -----------------------------------------------------------------------------
+#                          Public API: Numeric Dataset
+# -----------------------------------------------------------------------------
+def get_dataset(
+    csv_cls: str,
+    npz_path: str,
     test_ratio: float = 0.30,
     random_state: int = 42,
 ):
-    # 1 ─ load & shuffle ------------------------------------------------------
-    df = pd.read_csv(csv_cls, header=None).sample(frac=1, random_state=random_state)
-    df = df[0].str.split(";", expand=True)
-    y = df[621]
-    X = df.drop(columns=[621]).astype(float)
-
-    print("— Original data shape —")
-    print(f"X: {X.shape} | y: {y.shape}")          # (376, 621)
-
-    # 2 ─ Min-Max scaling -----------------------------------------------------
-    scaler = preprocessing.MinMaxScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    # 3 ─ stratified split ----------------------------------------------------
-    X_tr, X_te, y_tr, y_te = train_test_split(
-        X_scaled, y, test_size=test_ratio,
-        random_state=random_state, stratify=y
+    """
+    Generate and save numeric dataset.
+    Inputs/outputs unchanged from original.
+    Returns: X_tr_res, y_tr_res, X_te, y_te_int, label_encoder
+    """
+    X_tr_res, y_tr_res, X_te, y_te_int, le = _prepare_numeric_dataset(
+        csv_cls, test_ratio, random_state
     )
-    print(f"Train X: {X_tr.shape} | Test X: {X_te.shape}")
-
-    # 4 ─ label encoding ------------------------------------------------------
-    le = LabelEncoder()
-    y_tr_int = le.fit_transform(y_tr)
-    y_te_int = le.transform(y_te)
-
-    # 5 ─ SMOTE (train set only) ---------------------------------------------
-    smote = SMOTE(random_state=random_state, k_neighbors=5)
-    X_tr_res, y_tr_res = smote.fit_resample(X_tr, y_tr_int)
-    print("SMOTE class distribution:", np.bincount(y_tr_res))
-
-    # 6 ─ save numeric dataset -----------------------------------------------
     np.savez_compressed(
         npz_path,
-        X_train=X_tr_res.astype(np.float32),
-        y_train=y_tr_res.astype(np.int64),
-        X_test=X_te.astype(np.float32),
-        y_test=y_te_int.astype(np.int64),
+        X_train=X_tr_res,
+        y_train=y_tr_res,
+        X_test=X_te,
+        y_test=y_te_int,
         classes=le.classes_,
     )
-    print(f"Numeric data saved to {npz_path}")
+    print(f"Data saved to {npz_path}")
+    return X_tr_res, y_tr_res, X_te, y_te_int, le
 
-    # ---------------- NEW: image conversion ---------------- #
-    print("Converting signals to RGB images …")
+# -----------------------------------------------------------------------------
+#                         Public API: Image Dataset
+# -----------------------------------------------------------------------------
+def get_imageDataset(
+    csv_cls: str,
+    npz_path: str,
+    npz_img_path: str,
+    test_ratio: float = 0.30,
+    random_state: int = 42,
+):
+    """
+    Generate and save both numeric and image datasets.
+    Inputs/outputs unchanged from original.
+    Returns:
+      (X_tr_res, y_tr_res, X_te, y_te_int, label_encoder),
+      (X_tr_img, X_te_img)
+    """
+    X_tr_res, y_tr_res, X_te, y_te_int, le = _prepare_numeric_dataset(
+        csv_cls, test_ratio, random_state
+    )
+
+    print("Converting signals to filled-area RGB images …")
     X_tr_img = np.stack([signal_to_image(v) for v in X_tr_res], axis=0)
-    X_te_img = np.stack([signal_to_image(v) for v in X_te],     axis=0)
+    X_te_img = np.stack([signal_to_image(v) for v in X_te], axis=0)
 
-    # 7 ─ save image dataset -----------------------------------------------
     np.savez_compressed(
         npz_img_path,
-        X_train_img=X_tr_img,    # uint8
-        y_train=y_tr_res.astype(np.int64),
+        X_train_img=X_tr_img,
+        y_train=y_tr_res,
         X_test_img=X_te_img,
-        y_test=y_te_int.astype(np.int64),
+        y_test=y_te_int,
         classes=le.classes_,
     )
     print(f"Image data saved to {npz_img_path}")
@@ -334,12 +338,106 @@ def visualize_multiple_samples_per_class(samples_per_class=3):
     
     plt.show()
 
+# -----------------------------------------------------------------------------
+#                          Public API: Feature-Extractred Dataset
+# -----------------------------------------------------------------------------
+def get_dataset_FE(
+    fe_csv: str = "/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/preprocessing/geoMagDataset/class3_FE.csv",
+    raw_csv: str = "/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/preprocessing/geoMagDataset/class3.csv",
+    npz_path: str = "/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/geoMag/geoMagDataset_FE.npz",
+    test_ratio: float = 0.30,
+    random_state: int = 42,
+    drop_cols: tuple = (44, 45, 46, 47, 48, 49),
+):
+    """
+    Feature-engineered dataset pipeline analogous to get_dataset().
+
+    Parameters
+    ----------
+    fe_csv : str
+        Path to 'class3_FE.csv'.
+    raw_csv : str
+        Path to raw 'class3.csv' (used only for labels).
+    npz_path : str
+        Output path for compressed NPZ.
+    test_ratio : float
+        Fraction of data reserved for testing.
+    random_state : int
+        RNG seed ensuring reproducibility.
+    drop_cols : tuple
+        Column indices (0-based) to be removed from FE features.
+
+    Returns
+    -------
+    X_train_res, y_train_res, X_test, y_test_int, label_encoder
+    """
+    # 1 ─ Load FE features and corresponding labels --------------------------
+    df_fe = pd.read_csv(fe_csv, header=None).drop(columns=list(drop_cols))
+    df_label = (
+        pd.read_csv(raw_csv, header=None)[0]
+        .str.split(";", expand=True)[621]
+        .astype(str)
+    )
+
+    df = pd.concat([df_fe, df_label], axis=1, join="inner")
+    df = df.sample(frac=1, random_state=random_state)  # shuffle rows
+
+    y = df[621]
+    X = df.drop(columns=[621]).astype(float).fillna(0.0)
+
+    print("— Original FE data shape —")
+    print(f"X: {X.shape} | y: {y.shape}")
+
+    # 2 ─ Min-Max scaling -----------------------------------------------------
+    scaler = preprocessing.MinMaxScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    # 3 ─ Stratified train/test split ----------------------------------------
+    X_tr, X_te, y_tr, y_te = train_test_split(
+        X_scaled, y,
+        test_size=test_ratio,
+        random_state=random_state,
+        stratify=y,
+    )
+    print(f"Train X: {X_tr.shape} | Test X: {X_te.shape}")
+
+    # 4 ─ Integer label encoding ---------------------------------------------
+    le = LabelEncoder()
+    y_tr_int = le.fit_transform(y_tr)
+    y_te_int = le.transform(y_te)
+
+    # 5 ─ SMOTE oversampling (train set only) ---------------------------------
+    smote = SMOTE(random_state=random_state, k_neighbors=5)
+    X_tr_res, y_tr_res = smote.fit_resample(X_tr, y_tr_int)
+    print("SMOTE class distribution:", np.bincount(y_tr_res))
+
+    # 6 ─ Save to NPZ ---------------------------------------------------------
+    np.savez_compressed(
+        npz_path,
+        X_train=X_tr_res.astype(np.float32),
+        y_train=y_tr_res.astype(np.int64),
+        X_test=X_te.astype(np.float32),
+        y_test=y_te_int.astype(np.int64),
+        classes=le.classes_,
+    )
+    print(f"FE dataset saved to {npz_path}")
+
+    return X_tr_res, y_tr_res, X_te, y_te_int, le
+
+
 
 # 在 if __name__ == "__main__": 部分添加可视化调用
 if __name__ == "__main__":
     # 生成数据集
     # get_dataset()
-    # get_imageDataset()
+    # get_dataset_FE()
+    get_imageDataset(
+        csv_cls="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/preprocessing/geoMagDataset/class3.csv",
+        npz_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/geoMag/geoMagDataset.npz",
+        npz_img_path="/Users/xiangyifei/Documents/GitHub/efficientComputingSystem/data/geoMag/geoMagDataset_img.npz",
+        test_ratio=0.30,
+        random_state=42,
+    )
     
     # 可视化样本
     print("\n" + "="*60)

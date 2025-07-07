@@ -1,0 +1,8 @@
+# Analysis File List
+# Add one CSV filename per line
+# Lines starting with # are comments
+# files:
+10500001-sign.csv
+11600001-sign.csv
+11600033-sign.csv
+11600047-sign.csv

@@ -1,0 +1,531 @@
+================================================================================
+RE-IDENTIFICATION DATASET ANALYSIS REPORT
+================================================================================
+
+Analysis Date: 2025-07-06 14:09:40
+Processing Time: 55.80 seconds
+Data Directory: /Users/xiangyifei/Documents/HPC_Efficient_Computing_System/dataset/MSV/Vehicles_magnetic_signatures
+Random Seed: 42
+Max Samples: 10
+
+OVERALL STATISTICS
+----------------------------------------
+Total CSV files found: 298
+Files selected for analysis: 10
+Successfully loaded files: 10
+Features analyzed: x1, y1, z1, x2, y2, z2
+
+FILE PROCESSING DETAILS
+----------------------------------------
+File: 1220200591-sign.csv
+  Status: loaded
+  Original shape: (934, 22)
+  Clean shape: (928, 6)
+  Feature Statistics:
+    x1: mean=1708.7866, std=20.6289, range=[1658.0000, 1745.0000], nulls=0
+    y1: mean=1714.4644, std=105.2225, range=[1395.0000, 1990.0000], nulls=0
+    z1: mean=1745.1379, std=18.9404, range=[1717.0000, 1781.0000], nulls=0
+    x2: mean=1931.9666, std=168.0962, range=[1720.0000, 2342.0000], nulls=0
+    y2: mean=1731.3718, std=15.0042, range=[1703.0000, 1772.0000], nulls=0
+    z2: mean=0.0532, std=0.0605, range=[0.0000, 0.3430], nulls=0
+
+File: 10500194-sign.csv
+  Status: loaded
+  Original shape: (880, 22)
+  Clean shape: (874, 6)
+  Feature Statistics:
+    x1: mean=1702.5458, std=25.9773, range=[1639.0000, 1737.0000], nulls=0
+    y1: mean=1706.0755, std=124.4162, range=[1257.0000, 2012.0000], nulls=0
+    z1: mean=1739.6453, std=18.5994, range=[1707.0000, 1822.0000], nulls=0
+    x2: mean=1432.4130, std=326.1358, range=[678.0000, 2078.0000], nulls=0
+    y2: mean=1725.3204, std=10.2713, range=[1699.0000, 1768.0000], nulls=0
+    z2: mean=0.0466, std=0.0857, range=[0.0000, 0.4759], nulls=0
+
+File: 10500066-sign.csv
+  Status: loaded
+  Original shape: (968, 22)
+  Clean shape: (962, 6)
+  Feature Statistics:
+    x1: mean=1698.8888, std=81.4028, range=[0.0000, 1740.0000], nulls=0
+    y1: mean=1702.0083, std=142.2842, range=[0.0000, 2028.0000], nulls=0
+    z1: mean=1737.3493, std=81.2267, range=[0.0000, 1777.0000], nulls=0
+    x2: mean=1670.5561, std=87.3140, range=[0.0000, 1756.0000], nulls=0
+    y2: mean=1722.0322, std=80.1980, range=[0.0000, 1774.0000], nulls=0
+    z2: mean=0.0396, std=0.0600, range=[0.0000, 0.3111], nulls=0
+
+File: 10500135-sign.csv
+  Status: loaded
+  Original shape: (1002, 22)
+  Clean shape: (996, 6)
+  Feature Statistics:
+    x1: mean=1702.0532, std=25.6826, range=[1620.0000, 1743.0000], nulls=0
+    y1: mean=1704.6386, std=226.1207, range=[1024.0000, 2297.0000], nulls=0
+    z1: mean=1744.5020, std=21.0477, range=[1708.0000, 1803.0000], nulls=0
+    x2: mean=1623.1376, std=108.2760, range=[1213.0000, 1742.0000], nulls=0
+    y2: mean=1728.8474, std=16.6231, range=[1683.0000, 1800.0000], nulls=0
+    z2: mean=0.0619, std=0.0756, range=[0.0000, 0.2839], nulls=0
+
+File: 10500041-sign.csv
+  Status: loaded
+  Original shape: (944, 22)
+  Clean shape: (938, 6)
+  Feature Statistics:
+    x1: mean=1676.1642, std=207.9355, range=[0.0000, 1738.0000], nulls=0
+    y1: mean=1681.9947, std=230.5063, range=[0.0000, 1927.0000], nulls=0
+    z1: mean=1712.4776, std=212.0204, range=[0.0000, 1802.0000], nulls=0
+    x2: mean=1646.5469, std=206.8440, range=[0.0000, 1730.0000], nulls=0
+    y2: mean=1698.4872, std=209.6822, range=[0.0000, 1779.0000], nulls=0
+    z2: mean=0.0536, std=0.0619, range=[0.0000, 0.2701], nulls=0
+
+File: 10500247-sign.csv
+  Status: loaded
+  Original shape: (960, 22)
+  Clean shape: (954, 6)
+  Feature Statistics:
+    x1: mean=1702.2170, std=24.9206, range=[1649.0000, 1736.0000], nulls=0
+    y1: mean=1708.3491, std=142.5503, range=[1150.0000, 2091.0000], nulls=0
+    z1: mean=1740.9298, std=18.2325, range=[1707.0000, 1789.0000], nulls=0
+    x2: mean=1672.8857, std=48.1374, range=[1515.0000, 1807.0000], nulls=0
+    y2: mean=1725.8239, std=11.6534, range=[1694.0000, 1771.0000], nulls=0
+    z2: mean=0.0388, std=0.0471, range=[0.0000, 0.1922], nulls=0
+
+File: 1220200185-sign.csv
+  Status: loaded
+  Original shape: (2198, 22)
+  Clean shape: (2192, 6)
+  Feature Statistics:
+    x1: mean=1706.6606, std=21.3287, range=[1657.0000, 1754.0000], nulls=0
+    y1: mean=1710.1802, std=478.3466, range=[7.0000, 3216.0000], nulls=0
+    z1: mean=1751.4954, std=15.3571, range=[1720.0000, 1782.0000], nulls=0
+    x2: mean=1711.2505, std=42.7377, range=[1624.0000, 2073.0000], nulls=0
+    y2: mean=1734.2491, std=41.1328, range=[1461.0000, 2402.0000], nulls=0
+    z2: mean=0.0456, std=0.0396, range=[0.0000, 0.2287], nulls=0
+
+File: 11600028-sign.csv
+  Status: loaded
+  Original shape: (1772, 22)
+  Clean shape: (1766, 6)
+  Feature Statistics:
+    x1: mean=1708.8867, std=20.3024, range=[1663.0000, 1747.0000], nulls=0
+    y1: mean=1710.3086, std=92.1223, range=[761.0000, 1936.0000], nulls=0
+    z1: mean=1752.0006, std=19.7794, range=[1706.0000, 1823.0000], nulls=0
+    x2: mean=1726.9615, std=24.6739, range=[1661.0000, 1818.0000], nulls=0
+    y2: mean=1735.5646, std=18.3815, range=[1675.0000, 1902.0000], nulls=0
+    z2: mean=0.0332, std=0.0327, range=[0.0000, 0.1638], nulls=0
+
+File: 1220200272-sign.csv
+  Status: loaded
+  Original shape: (1070, 22)
+  Clean shape: (1064, 6)
+  Feature Statistics:
+    x1: mean=1707.6118, std=21.3024, range=[1664.0000, 1742.0000], nulls=0
+    y1: mean=1710.2434, std=130.7711, range=[1328.0000, 2068.0000], nulls=0
+    z1: mean=1746.1635, std=18.0679, range=[1719.0000, 1781.0000], nulls=0
+    x2: mean=1796.5789, std=65.4662, range=[1642.0000, 1986.0000], nulls=0
+    y2: mean=1731.5771, std=12.6351, range=[1709.0000, 1764.0000], nulls=0
+    z2: mean=0.0461, std=0.0595, range=[0.0000, 0.2643], nulls=0
+
+File: 1220100404-sign.csv
+  Status: loaded
+  Original shape: (2168, 22)
+  Clean shape: (2162, 6)
+  Feature Statistics:
+    x1: mean=1706.7738, std=21.8275, range=[1662.0000, 1744.0000], nulls=0
+    y1: mean=1703.2567, std=192.4505, range=[688.0000, 3295.0000], nulls=0
+    z1: mean=1751.8617, std=15.6608, range=[1720.0000, 1781.0000], nulls=0
+    x2: mean=1709.0851, std=22.9275, range=[1645.0000, 1795.0000], nulls=0
+    y2: mean=1734.4593, std=16.9307, range=[1652.0000, 1988.0000], nulls=0
+    z2: mean=0.0298, std=0.0460, range=[0.0000, 0.3710], nulls=0
+
+AGGREGATED FEATURE STATISTICS
+----------------------------------------
+x1:
+  Total data points: 12836
+  Mean: 1703.439545
+  Std: 64.387705
+  Min: 0.000000
+  Max: 1754.000000
+  Median: 1720.000000
+  25th percentile: 1683.000000
+  75th percentile: 1723.000000
+
+y1:
+  Total data points: 12836
+  Mean: 1705.828997
+  Std: 246.275358
+  Min: 0.000000
+  Max: 3295.000000
+  Median: 1720.000000
+  25th percentile: 1679.000000
+  75th percentile: 1758.000000
+
+z1:
+  Total data points: 12836
+  Mean: 1744.678794
+  Std: 64.443825
+  Min: 0.000000
+  Max: 1823.000000
+  Median: 1749.000000
+  25th percentile: 1730.000000
+  75th percentile: 1762.000000
+
+x2:
+  Total data points: 12836
+  Mean: 1699.624883
+  Std: 159.214720
+  Min: 0.000000
+  Max: 2342.000000
+  Median: 1720.000000
+  25th percentile: 1679.000000
+  75th percentile: 1728.000000
+
+y2:
+  Total data points: 12836
+  Mean: 1728.853771
+  Std: 65.058447
+  Min: 0.000000
+  Max: 2402.000000
+  Median: 1727.000000
+  25th percentile: 1720.000000
+  75th percentile: 1743.000000
+
+z2:
+  Total data points: 12836
+  Mean: 0.042794
+  Std: 0.055464
+  Min: 0.000000
+  Max: 0.475896
+  Median: 0.021051
+  25th percentile: 0.006675
+  75th percentile: 0.056725
+
+SELECTED FILES LIST
+----------------------------------------
+Files used in analysis:
+   1. 1220200591-sign.csv
+   2. 10500194-sign.csv
+   3. 10500066-sign.csv
+   4. 10500135-sign.csv
+   5. 10500041-sign.csv
+   6. 10500247-sign.csv
+   7. 1220200185-sign.csv
+   8. 11600028-sign.csv
+   9. 1220200272-sign.csv
+  10. 1220100404-sign.csv
+
+Files NOT selected (due to random sampling):
+   1. 11600047-sign.csv
+   2. 10500079-sign.csv
+   3. 10500078-sign.csv
+   4. 10500317-sign.csv
+   5. 1210200034-sign.csv
+   6. 12300216-sign.csv
+   7. 12700919-sign.csv
+   8. 1220100499-sign.csv
+   9. 10500047-sign.csv
+  10. 10500581-sign.csv
+  11. 12700524-sign.csv
+  12. 11600031-sign.csv
+  13. 1220200075-sign.csv
+  14. 10500634-sign.csv
+  15. 1220200428-sign.csv
+  16. 1220200281-sign.csv
+  17. 1210200224-sign.csv
+  18. 1210200076-sign.csv
+  19. 12300315-sign.csv
+  20. 1220200041-sign.csv
+  21. 12300255-sign.csv
+  22. 10500073-sign.csv
+  23. 10500214-sign.csv
+  24. 1220200193-sign.csv
+  25. 1220200177-sign.csv
+  26. 1210200048-sign.csv
+  27. 11600132-sign.csv
+  28. 10500410-sign.csv
+  29. 10500145-sign.csv
+  30. 12700566-sign.csv
+  31. 11600072-sign.csv
+  32. 1220200250-sign.csv
+  33. 1220200037-sign.csv
+  34. 1220100122-sign.csv
+  35. 10500483-sign.csv
+  36. 12700404-sign.csv
+  37. 1220200400-sign.csv
+  38. 1220200667-sign.csv
+  39. 10500166-sign.csv
+  40. 10500392-sign.csv
+  41. 1220200541-sign.csv
+  42. 10500208-sign.csv
+  43. 12300127-sign.csv
+  44. 10500111-sign.csv
+  45. 11600026-sign.csv
+  46. 1220200344-sign.csv
+  47. 10500159-sign.csv
+  48. 10500051-sign.csv
+  49. 1220200719-sign.csv
+  50. 10500064-sign.csv
+  51. 1220100265-sign.csv
+  52. 10500439-sign.csv
+  53. 1220200056-sign.csv
+  54. 1220200057-sign.csv
+  55. 1210200060-sign.csv
+  56. 1220200574-sign.csv
+  57. 12300113-sign.csv
+  58. 10500013-sign.csv
+  59. 1220200068-sign.csv
+  60. 10500189-sign.csv
+  61. 1220200395-sign.csv
+  62. 10500547-sign.csv
+  63. 1220100428-sign.csv
+  64. 1220200307-sign.csv
+  65. 10500080-sign.csv
+  66. 11600124-sign.csv
+  67. 1220100520-sign.csv
+  68. 10500129-sign.csv
+  69. 1220100512-sign.csv
+  70. 10500395-sign.csv
+  71. 12700724-sign.csv
+  72. 1220200012-sign.csv
+  73. 10500306-sign.csv
+  74. 1220200531-sign.csv
+  75. 1220200530-sign.csv
+  76. 12300331-sign.csv
+  77. 11600129-sign.csv
+  78. 1210200053-sign.csv
+  79. 12700877-sign.csv
+  80. 10500057-sign.csv
+  81. 1220200125-sign.csv
+  82. 10500338-sign.csv
+  83. 11600161-sign.csv
+  84. 1220200617-sign.csv
+  85. 12700613-sign.csv
+  86. 11600160-sign.csv
+  87. 1220200110-sign.csv
+  88. 12300023-sign.csv
+  89. 1220200622-sign.csv
+  90. 1220200445-sign.csv
+  91. 10500658-sign.csv
+  92. 1220200846-sign.csv
+  93. 10500123-sign.csv
+  94. 10500401-sign.csv
+  95. 10500154-sign.csv
+  96. 11600062-sign.csv
+  97. 11600122-sign.csv
+  98. 1210200150-sign.csv
+  99. 10500541-sign.csv
+  100. 10500644-sign.csv
+  101. 10500177-sign.csv
+  102. 12300351-sign.csv
+  103. 10500359-sign.csv
+  104. 1220100236-sign.csv
+  105. 1220200410-sign.csv
+  106. 10500251-sign.csv
+  107. 1220100158-sign.csv
+  108. 10500148-sign.csv
+  109. 10500587-sign.csv
+  110. 10500515-sign.csv
+  111. 1210200222-sign.csv
+  112. 10500193-sign.csv
+  113. 1220100167-sign.csv
+  114. 1220200072-sign.csv
+  115. 12700077-sign.csv
+  116. 12300289-sign.csv
+  117. 1220200512-sign.csv
+  118. 1220200774-sign.csv
+  119. 11600199-sign.csv
+  120. 10500134-sign.csv
+  121. 1210200070-sign.csv
+  122. 10500213-sign.csv
+  123. 1220200195-sign.csv
+  124. 12700456-sign.csv
+  125. 10500264-sign.csv
+  126. 10500199-sign.csv
+  127. 10500198-sign.csv
+  128. 1220100398-sign.csv
+  129. 1220200702-sign.csv
+  130. 12300102-sign.csv
+  131. 1220200699-sign.csv
+  132. 10500143-sign.csv
+  133. 10500067-sign.csv
+  134. 10500293-sign.csv
+  135. 11600150-sign.csv
+  136. 10500309-sign.csv
+  137. 1220200115-sign.csv
+  138. 12300167-sign.csv
+  139. 10500248-sign.csv
+  140. 11600083-sign.csv
+  141. 10500127-sign.csv
+  142. 10500059-sign.csv
+  143. 1220200244-sign.csv
+  144. 11600200-sign.csv
+  145. 10500151-sign.csv
+  146. 10500010-sign.csv
+  147. 10500011-sign.csv
+  148. 12300051-sign.csv
+  149. 12300050-sign.csv
+  150. 12700897-sign.csv
+  151. 11600088-sign.csv
+  152. 1220200157-sign.csv
+  153. 12700153-sign.csv
+  154. 1220200156-sign.csv
+  155. 1220200491-sign.csv
+  156. 10500165-sign.csv
+  157. 10500164-sign.csv
+  158. 10500391-sign.csv
+  159. 10500390-sign.csv
+  160. 1210200057-sign.csv
+  161. 1220200295-sign.csv
+  162. 1220200753-sign.csv
+  163. 12300188-sign.csv
+  164. 1220200121-sign.csv
+  165. 1220200680-sign.csv
+  166. 10500130-sign.csv
+  167. 11600094-sign.csv
+  168. 12700635-sign.csv
+  169. 1220200631-sign.csv
+  170. 1220200099-sign.csv
+  171. 12300030-sign.csv
+  172. 1220100379-sign.csv
+  173. 10500217-sign.csv
+  174. 11600131-sign.csv
+  175. 1220200647-sign.csv
+  176. 11600130-sign.csv
+  177. 1220200288-sign.csv
+  178. 12300220-sign.csv
+  179. 10500007-sign.csv
+  180. 1220100168-sign.csv
+  181. 10500006-sign.csv
+  182. 10500146-sign.csv
+  183. 12300268-sign.csv
+  184. 10500588-sign.csv
+  185. 12700967-sign.csv
+  186. 1210200198-sign.csv
+  187. 10500481-sign.csv
+  188. 11600071-sign.csv
+  189. 12300133-sign.csv
+  190. 1220200108-sign.csv
+  191. 1220200093-sign.csv
+  192. 1220200048-sign.csv
+  193. 10500033-sign.csv
+  194. 10500254-sign.csv
+  195. 11600104-sign.csv
+  196. 10500045-sign.csv
+  197. 10500419-sign.csv
+  198. 1220200137-sign.csv
+  199. 1220200136-sign.csv
+  200. 1220200210-sign.csv
+  201. 1220100305-sign.csv
+  202. 11600033-sign.csv
+  203. 10500197-sign.csv
+  204. 10500196-sign.csv
+  205. 1210200227-sign.csv
+  206. 10500362-sign.csv
+  207. 1220200044-sign.csv
+  208. 12300176-sign.csv
+  209. 11600001-sign.csv
+  210. 10500137-sign.csv
+  211. 11600093-sign.csv
+  212. 1220200418-sign.csv
+  213. 10500523-sign.csv
+  214. 1220200197-sign.csv
+  215. 10500211-sign.csv
+  216. 10500210-sign.csv
+  217. 10500076-sign.csv
+  218. 1220200748-sign.csv
+  219. 10500001-sign.csv
+  220. 1220200172-sign.csv
+  221. 1220200314-sign.csv
+  222. 10500049-sign.csv
+  223. 1220200033-sign.csv
+  224. 12700869-sign.csv
+  225. 1220200567-sign.csv
+  226. 12300008-sign.csv
+  227. 12700359-sign.csv
+  228. 10500414-sign.csv
+  229. 1210200031-sign.csv
+  230. 10500312-sign.csv
+  231. 10500174-sign.csv
+  232. 1210200030-sign.csv
+  233. 10500420-sign.csv
+  234. 11600042-sign.csv
+  235. 12700198-sign.csv
+  236. 12700670-sign.csv
+  237. 1220200147-sign.csv
+  238. 12700325-sign.csv
+  239. 11600099-sign.csv
+  240. 1210200171-sign.csv
+  241. 12300002-sign.csv
+  242. 1220100243-sign.csv
+  243. 1220200131-sign.csv
+  244. 10500585-sign.csv
+  245. 10500042-sign.csv
+  246. 1220200039-sign.csv
+  247. 12700863-sign.csv
+  248. 1210200046-sign.csv
+  249. 10500364-sign.csv
+  250. 10500456-sign.csv
+  251. 1220200071-sign.csv
+  252. 11600035-sign.csv
+  253. 1220200089-sign.csv
+  254. 1220200621-sign.csv
+  255. 12300247-sign.csv
+  256. 1220200113-sign.csv
+  257. 1220200374-sign.csv
+  258. 1220200180-sign.csv
+  259. 10500060-sign.csv
+  260. 10500061-sign.csv
+  261. 1210200125-sign.csv
+  262. 11600084-sign.csv
+  263. 1220200052-sign.csv
+  264. 1220100147-sign.csv
+  265. 10500029-sign.csv
+  266. 10500028-sign.csv
+  267. 1220200507-sign.csv
+  268. 1210200012-sign.csv
+  269. 1220200243-sign.csv
+  270. 1220200242-sign.csv
+  271. 10500017-sign.csv
+  272. 1210200152-sign.csv
+  273. 10500016-sign.csv
+  274. 12700492-sign.csv
+  275. 12700803-sign.csv
+  276. 1210200167-sign.csv
+  277. 1220200058-sign.csv
+  278. 12700666-sign.csv
+  279. 1210200026-sign.csv
+  280. 10500163-sign.csv
+  281. 1220200083-sign.csv
+  282. 12300154-sign.csv
+  283. 10500548-sign.csv
+  284. 1210200051-sign.csv
+  285. 1210200050-sign.csv
+  286. 1220200293-sign.csv
+  287. 10500054-sign.csv
+  288. 1220200249-sign.csv
+
+========================================
+DTW DISTANCE MATRIX (x1 feature)
+----------------------------------------
+Files order:
+  0: 1220200591-sign.csv
+  1: 10500194-sign.csv
+  2: 10500066-sign.csv
+  3: 10500135-sign.csv
+  4: 10500041-sign.csv
+  5: 10500247-sign.csv
+  6: 1220200185-sign.csv
+  7: 11600028-sign.csv
+  8: 1220200272-sign.csv
+  9: 1220100404-sign.csv
+
+DTW Distance Matrix:
+[[    0. 18968. 23332. 22326. 40225. 16940. 30692. 23604. 11578. 31807.]
+ [18968.     0. 14198. 16141. 37577. 10573. 46394. 37044. 23106. 47805.]
+ [23332. 14198.     0. 13408. 13842. 12341. 51827. 42685. 27920. 52501.]
+ [22326. 16141. 13408.     0. 34181. 10347. 48470. 41414. 22177. 50424.]
+ [40225. 37577. 13842. 34181.     0. 37618. 69983. 59001. 42543. 66920.]
+ [16940. 10573. 12341. 10347. 37618.     0. 44047. 38295. 21901. 46272.]
+ [30692. 46394. 51827. 48470. 69983. 44047.     0. 24987. 31609. 27700.]
+ [23604. 37044. 42685. 41414. 59001. 38295. 24987.     0. 27098. 31552.]
+ [11578. 23106. 27920. 22177. 42543. 21901. 31609. 27098.     0. 32927.]
+ [31807. 47805. 52501. 50424. 66920. 46272. 27700. 31552. 32927.     0.]]
