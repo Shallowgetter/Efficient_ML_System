@@ -97,7 +97,17 @@ logger.info(f"DataLoaders ready | Train batches:{len(dl_train)} Test batches:{le
 def build_backbone(name: str):
     name = name.lower()
     if name == "densenet201":
-        model = models.densenet201(weights=models.DenseNet201_Weights.IMAGENET1K_V1)
+        model = models.densenet201(weights=None)  # 不自动下载权重
+        # 尝试手动加载预训练权重
+        try:
+            state_dict = torch.hub.load_state_dict_from_url(
+                'https://download.pytorch.org/models/densenet201-c1103571.pth',
+                progress=True
+            )
+            model.load_state_dict(state_dict)
+        except:
+            logger.warning(f"Failed to load pretrained weights for {name}, using random initialization")
+        
         num_ftrs = model.classifier.in_features
         model.classifier = nn.Sequential(
             nn.Linear(num_ftrs, 64), nn.BatchNorm1d(64),
@@ -105,7 +115,16 @@ def build_backbone(name: str):
             nn.Linear(64, 3)
         )
     elif name == "densenet169":
-        model = models.densenet169(weights=models.DenseNet169_Weights.IMAGENET1K_V1)
+        model = models.densenet169(weights=None)
+        try:
+            state_dict = torch.hub.load_state_dict_from_url(
+                'https://download.pytorch.org/models/densenet169-b2777c0a.pth',
+                progress=True
+            )
+            model.load_state_dict(state_dict)
+        except:
+            logger.warning(f"Failed to load pretrained weights for {name}, using random initialization")
+            
         num_ftrs = model.classifier.in_features
         model.classifier = nn.Sequential(
             nn.Linear(num_ftrs, 64), nn.BatchNorm1d(64),
@@ -113,7 +132,16 @@ def build_backbone(name: str):
             nn.Linear(64, 3)
         )
     elif name == "densenet121":
-        model = models.densenet121(weights=models.DenseNet121_Weights.IMAGENET1K_V1)
+        model = models.densenet121(weights=None)
+        try:
+            state_dict = torch.hub.load_state_dict_from_url(
+                'https://download.pytorch.org/models/densenet121-a639ec97.pth',
+                progress=True
+            )
+            model.load_state_dict(state_dict)
+        except:
+            logger.warning(f"Failed to load pretrained weights for {name}, using random initialization")
+            
         num_ftrs = model.classifier.in_features
         model.classifier = nn.Sequential(
             nn.Linear(num_ftrs, 64), nn.BatchNorm1d(64),
@@ -121,26 +149,51 @@ def build_backbone(name: str):
             nn.Linear(64, 3)
         )
     elif name == "mobilenet":
-        model = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V2)
-        # MobileNetV3 的 classifier 结构: [Linear(960, 1280), Hardswish(), Dropout(0.2), Linear(1280, 1000)]
-        num_ftrs = model.classifier[0].in_features  # 960
+        model = models.mobilenet_v3_large(weights=None)
+        try:
+            state_dict = torch.hub.load_state_dict_from_url(
+                'https://download.pytorch.org/models/mobilenet_v3_large-8738ca79.pth',
+                progress=True
+            )
+            model.load_state_dict(state_dict)
+        except:
+            logger.warning(f"Failed to load pretrained weights for {name}, using random initialization")
+            
+        num_ftrs = model.classifier[0].in_features
         model.classifier = nn.Sequential(
             nn.Linear(num_ftrs, 64), nn.BatchNorm1d(64),
             nn.ReLU(inplace=True), nn.Dropout(0.2),
             nn.Linear(64, 3)
         )
     elif name == "mobilenetv2":
-        model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.IMAGENET1K_V1)
-        # MobileNetV2 的 classifier 结构: [Dropout(0.2), Linear(1280, 1000)]
-        num_ftrs = model.classifier[1].in_features  # 1280
+        model = models.mobilenet_v2(weights=None)
+        try:
+            state_dict = torch.hub.load_state_dict_from_url(
+                'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
+                progress=True
+            )
+            model.load_state_dict(state_dict)
+        except:
+            logger.warning(f"Failed to load pretrained weights for {name}, using random initialization")
+            
+        num_ftrs = model.classifier[1].in_features
         model.classifier = nn.Sequential(
             nn.Linear(num_ftrs, 64), nn.BatchNorm1d(64),
             nn.ReLU(inplace=True), nn.Dropout(0.2),
             nn.Linear(64, 3)
         )
     elif name == "vgg16":
-        model = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
-        num_ftrs = model.classifier[0].in_features  # 25088
+        model = models.vgg16(weights=None)
+        try:
+            state_dict = torch.hub.load_state_dict_from_url(
+                'https://download.pytorch.org/models/vgg16-397923af.pth',
+                progress=True
+            )
+            model.load_state_dict(state_dict)
+        except:
+            logger.warning(f"Failed to load pretrained weights for {name}, using random initialization")
+            
+        num_ftrs = model.classifier[0].in_features
         model.classifier = nn.Sequential(
             nn.Flatten(),
             nn.Linear(num_ftrs, 64), nn.BatchNorm1d(64),
@@ -148,7 +201,16 @@ def build_backbone(name: str):
             nn.Linear(64, 3)
         )
     elif name == "vgg19":
-        model = models.vgg19(weights=models.VGG19_Weights.IMAGENET1K_V1)
+        model = models.vgg19(weights=None)
+        try:
+            state_dict = torch.hub.load_state_dict_from_url(
+                'https://download.pytorch.org/models/vgg19-dcbb9e9d.pth',
+                progress=True
+            )
+            model.load_state_dict(state_dict)
+        except:
+            logger.warning(f"Failed to load pretrained weights for {name}, using random initialization")
+            
         num_ftrs = model.classifier[0].in_features
         model.classifier = nn.Sequential(
             nn.Flatten(),
@@ -223,13 +285,53 @@ def train(model, name, epochs=50):
 
 @torch.no_grad()
 def evaluate(model, name):
+    logger.info(f"Evaluating {name} model on test set")
+    
     model.eval()
     all_pred, all_true = [], []
+    
+    # 预热推理（避免第一次推理的初始化开销）
+    with torch.no_grad():
+        dummy_input = torch.randn(1, 3, 224, 224).to(DEVICE)
+        for _ in range(5):
+            _ = model(dummy_input)
+    
+    # 计算推理时间
+    inference_times = []
+    total_samples = 0
+    
     for xb, yb in dl_test:
         xb = xb.to(DEVICE)
-        all_pred.append(model(xb).cpu().argmax(1))
+        
+        # 记录推理时间
+        start_time = time.time()
+        out = model(xb)
+        end_time = time.time()
+        
+        batch_time = end_time - start_time
+        batch_size = xb.size(0)
+        inference_times.append(batch_time)
+        total_samples += batch_size
+        
+        all_pred.append(out.cpu().argmax(1))
         all_true.append(yb)
-    y_pred = torch.cat(all_pred).numpy(); y_true = torch.cat(all_true).numpy()
+    
+    y_pred = torch.cat(all_pred).numpy()
+    y_true = torch.cat(all_true).numpy()
+    
+    # 计算平均推理时间
+    total_inference_time = sum(inference_times)
+    avg_inference_time_per_sample = total_inference_time / total_samples
+    avg_inference_time_per_batch = total_inference_time / len(dl_test)
+    
+    # 记录推理时间信息
+    logger.info(f"{name} Inference Timing:")
+    logger.info(f"  Total inference time: {total_inference_time:.4f} seconds")
+    logger.info(f"  Average time per sample: {avg_inference_time_per_sample*1000:.4f} ms")
+    logger.info(f"  Average time per batch: {avg_inference_time_per_batch*1000:.4f} ms")
+    logger.info(f"  Total samples: {total_samples}")
+    logger.info(f"  Throughput: {total_samples/total_inference_time:.2f} samples/second")
+    
     acc = accuracy_score(y_true, y_pred)
     pr  = precision_score(y_true, y_pred, average="weighted", zero_division=0)
     rc  = recall_score(   y_true, y_pred, average="macro",    zero_division=0)
@@ -237,24 +339,34 @@ def evaluate(model, name):
 
     rep = classification_report(y_true, y_pred, digits=4)
     logger.info(f"{name} metrics  Acc:{acc:.4f}  Prec:{pr:.4f}  Rec:{rc:.4f}  F1:{f1:.4f}")
+    logger.info(f"{name} Average Inference Time: {avg_inference_time_per_sample*1000:.4f} ms per sample")
+    
     with open(os.path.join(RESULT_DIR, f"{name}_report.txt"), "w") as f:
+        f.write(f"{name} Classification Report:\n")
         f.write(rep)
+    
     # confusion matrix figure
     fig_path = os.path.join(RESULT_DIR, f"cm_{name}.png")
     plot_confusion_matrix(y_true, y_pred, class_names, normalize=True,
                           fontsize=14, axis=1, vmin=0, vmax=1).get_figure().savefig(fig_path, dpi=300)
-    return acc, pr, rc, f1, rep
+    plt.close()  # 释放内存
+    
+    return acc, pr, rc, f1, rep, avg_inference_time_per_sample
 
 # ------------- 6. main loop over backbones ---------------------------------
-BACKBONES = ["densenet201", "densenet169", "densenet121",
-             "mobilenet", "mobilenetv2", "vgg16", "vgg19"]
+BACKBONES = ["mobilenet", "vgg16", "vgg19"] # "densenet201", "densenet169", "densenet121", "mobilenetv2"
 
 all_metrics = {}
 for bb in BACKBONES:
+    logger.info("=" * 60)
+    logger.info(f"Starting {bb.upper()} model training and evaluation")
+    logger.info("=" * 60)
+    
     model = build_backbone(bb)
     hist  = train(model, bb.upper())
-    acc, pr, rc, f1, _ = evaluate(model, bb.upper())
-    all_metrics[bb] = (acc, pr, rc, f1)
+    acc, pr, rc, f1, _, avg_inference_time = evaluate(model, bb.upper())
+    all_metrics[bb] = (acc, pr, rc, f1, avg_inference_time)
+    
     # save loss curve
     plt.figure(figsize=(8,4))
     plt.plot(hist["tr"], label="Train")
@@ -262,11 +374,46 @@ for bb in BACKBONES:
     plt.title(f"{bb.upper()} Loss"); plt.xlabel("Epoch"); plt.ylabel("Loss")
     plt.legend(); plt.tight_layout()
     plt.savefig(os.path.join(RESULT_DIR, f"{bb}_loss.png"), dpi=300); plt.close()
+    
+    logger.info(f"{bb.upper()} experiment completed")
+    logger.info("-" * 60)
 
 # ------------- 7. summary ---------------------------------------------------
+logger.info("=" * 60)
+logger.info("Transfer Learning Experiment Summary")
+logger.info("=" * 60)
+
 with open(os.path.join(RESULT_DIR, "summary_metrics.txt"), "w") as f:
-    for k,(a,p,r,f1) in all_metrics.items():
+    f.write("Transfer Learning Models Final Metrics\n")
+    f.write("=" * 60 + "\n")
+    
+    for k, (a, p, r, f1, avg_inference_time) in all_metrics.items():
         line = f"{k.upper():12s}  Acc:{a:.4f}  Prec:{p:.4f}  Rec:{r:.4f}  F1:{f1:.4f}"
-        logger.info(line); f.write(line+"\n")
+        time_line = f"{k.upper():12s}  Inference Time: {avg_inference_time*1000:.4f} ms/sample  Throughput: {1/avg_inference_time:.2f} samples/sec"
+        
+        logger.info(line)
+        logger.info(time_line)
+        
+        f.write(line + "\n")
+        f.write(time_line + "\n")
+        f.write("-" * 60 + "\n")
+
+# 保存详细的指标文件
+detailed_metrics_path = os.path.join(RESULT_DIR, "detailed_metrics.txt")
+with open(detailed_metrics_path, 'w') as f:
+    f.write("Detailed Transfer Learning Model Metrics\n")
+    f.write("=" * 70 + "\n")
+    
+    for k, (a, p, r, f1, avg_inference_time) in all_metrics.items():
+        f.write(f"Model: {k.upper()}\n")
+        f.write(f"  Accuracy: {a:.4f}\n")
+        f.write(f"  Precision: {p:.4f}\n")
+        f.write(f"  Recall: {r:.4f}\n")
+        f.write(f"  F1-Score: {f1:.4f}\n")
+        f.write(f"  Average Inference Time: {avg_inference_time*1000:.4f} ms per sample\n")
+        f.write(f"  Throughput: {1/avg_inference_time:.2f} samples/second\n")
+        f.write("=" * 70 + "\n")
 
 logger.info("Transfer-learning experiment finished. See RESULT_DIR for outputs.")
+logger.info(f"Summary metrics saved to: {os.path.join(RESULT_DIR, 'summary_metrics.txt')}")
+logger.info(f"Detailed metrics saved to: {detailed_metrics_path}")

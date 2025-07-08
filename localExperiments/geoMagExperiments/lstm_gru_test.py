@@ -198,14 +198,50 @@ def evaluate(model, name):
     
     model.eval()
     all_pred, all_true = [], []
+    
+    # 预热推理（避免第一次推理的初始化开销）
+    with torch.no_grad():
+        dummy_input = torch.randn(1, 207, 3).to(DEVICE)
+        for _ in range(5):
+            _ = model(dummy_input)
+    
+    # 计算推理时间
+    inference_times = []
+    total_samples = 0
+    
     with torch.no_grad():
         for Xb, yb in dl_val:
             Xb = Xb.to(DEVICE)
+            
+            # 记录推理时间
+            start_time = time.time()
             out = model(Xb)
+            end_time = time.time()
+            
+            batch_time = end_time - start_time
+            batch_size = Xb.size(0)
+            inference_times.append(batch_time)
+            total_samples += batch_size
+            
             all_pred.append(out.cpu().argmax(1))
             all_true.append(yb)
+    
     y_pred = torch.cat(all_pred).numpy()
     y_true = torch.cat(all_true).numpy()
+    
+    # 计算平均推理时间
+    total_inference_time = sum(inference_times)
+    avg_inference_time_per_sample = total_inference_time / total_samples
+    avg_inference_time_per_batch = total_inference_time / len(dl_val)
+    
+    # 记录推理时间信息
+    logger.info(f"{name} Inference Timing:")
+    logger.info(f"  Total inference time: {total_inference_time:.4f} seconds")
+    logger.info(f"  Average time per sample: {avg_inference_time_per_sample*1000:.4f} ms")
+    logger.info(f"  Average time per batch: {avg_inference_time_per_batch*1000:.4f} ms")
+    logger.info(f"  Total samples: {total_samples}")
+    logger.info(f"  Throughput: {total_samples/total_inference_time:.2f} samples/second")
+    
     acc = accuracy_score(y_true, y_pred)
     pr  = precision_score(y_true, y_pred, average="weighted", zero_division=0)
     rc  = recall_score(   y_true, y_pred, average="macro",    zero_division=0)
@@ -221,7 +257,7 @@ def evaluate(model, name):
         f.write(f"{name} Classification Report:\n")
         f.write(class_report)
     
-    return acc, pr, rc, f1, y_true, y_pred
+    return acc, pr, rc, f1, y_true, y_pred, avg_inference_time_per_sample
 
 # ------------------------ 6. Run training --------------------------------------- #
 logger.info("=" * 50)
@@ -238,17 +274,21 @@ logger.info("=" * 50)
 
 metrics = {}
 for name, mdl in [("LSTM", model_lstm), ("GRU", model_gru)]:
-    acc, pr, rc, f1, yt, yp = evaluate(mdl, name)
-    metrics[name] = (acc, pr, rc, f1, yt, yp)
+    acc, pr, rc, f1, yt, yp, avg_inference_time = evaluate(mdl, name)
+    metrics[name] = (acc, pr, rc, f1, yt, yp, avg_inference_time)
     logger.info(f"{name} Final Results | Acc:{acc:.4f}  Prec:{pr:.4f}  Recall:{rc:.4f}  F1:{f1:.4f}")
+    logger.info(f"{name} Average Inference Time: {avg_inference_time*1000:.4f} ms per sample")
 
 # Save metrics to file
 metrics_path = os.path.join(RESULT_DIR, "final_metrics.txt")
 with open(metrics_path, 'w') as f:
     f.write("Final Model Metrics\n")
     f.write("=" * 50 + "\n")
-    for name, (acc, pr, rc, f1, _, _) in metrics.items():
+    for name, (acc, pr, rc, f1, _, _, avg_inference_time) in metrics.items():
         f.write(f"{name} | Acc:{acc:.4f}  Prec:{pr:.4f}  Recall:{rc:.4f}  F1:{f1:.4f}\n")
+        f.write(f"{name} | Average Inference Time: {avg_inference_time*1000:.4f} ms per sample\n")
+        f.write(f"{name} | Throughput: {1/avg_inference_time:.2f} samples/second\n")
+        f.write("-" * 50 + "\n")
 
 logger.info(f"Final metrics saved to: {metrics_path}")
 
@@ -304,7 +344,7 @@ logger.info("Generating confusion matrices")
 
 class_names = ["Light", "Medium", "Heavy"]
 
-for name, (_,_,_,_, yt, yp) in metrics.items():
+for name, (_,_,_,_, yt, yp, _) in metrics.items():
     plt.figure(figsize=(8, 6))
     ax = plot_confusion_matrix(
         test_y=yt, 

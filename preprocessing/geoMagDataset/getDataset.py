@@ -78,48 +78,80 @@ def _prepare_numeric_dataset(csv_cls, test_ratio, random_state):
 #                      Signal-to-Image Conversion
 # -----------------------------------------------------------------------------
 # Color lookup table: mask (0–7) → (B, G, R)
-_COLORS = {
-    0: (255,   0,   0),   # background (Blue)
-    1: (255,   0, 255),   # X only     (Purple)
-    2: (  0,   0, 255),   # Y only     (Red)
-    3: (  0,   0,   0),   # X+Y        (Black)
-    4: (  0, 255,   0),   # Z only     (Green)
-    5: (  0, 128, 128),   # X+Z        (Olive)
-    6: (255, 255,   0),   # Y+Z        (Turquoise)
-    7: (255, 255, 255),   # X+Y+Z      (White)
-}
+_MASK_TO_RGB = np.array([
+    (  0,   0, 255),   # 0: background – Blue
+    (128,   0, 128),   # 1: X          – Purple
+    (255,   0,   0),   # 2: Y          – Red
+    (  0,   0,   0),   # 3: X+Y        – Black
+    (  0, 128,   0),   # 4: Z          – Green
+    (128, 128,   0),   # 5: X+Z        – Olive
+    ( 64, 224, 208),   # 6: Y+Z        – Turquoise
+    (255, 255, 255)    # 7: X+Y+Z      – White
+], dtype=np.uint8)
 
-def signal_to_image(vec621: np.ndarray, height: int = 216) -> np.ndarray:
+def _pad_or_crop(seq, target_len=207):
+    """Right-pad with zeros or crop so that every sample has exactly 207 rows."""
+    cur_len = len(seq)
+    if cur_len < target_len:
+        pad = np.zeros((target_len - cur_len, seq.shape[1]), dtype=seq.dtype)
+        return np.vstack([seq, pad])
+    return seq[:target_len]
+
+
+
+def signals_to_color_image(raw_xyz,
+                            img_size: int = 216,
+                            normalise: bool = True) -> np.ndarray:
     """
-    Convert a 621-dim flattened signal (207×3) into a (height×216×3) RGB image
-    by filling the area under each curve (X, Y, Z) with distinct colors.
+    Convert one XYZ signal to a 216×216 RGB image using the eight-colour rule.
+
+    Accepts both (L,3) arrays and 1-D flattened arrays of length 3*L.
     """
-    seq = vec621.reshape(207, 3)
-    width = 207
-    img = np.zeros((height, 216, 3), dtype=np.uint8)
+    raw_xyz = np.asarray(raw_xyz)
 
-    # compute pixel heights per axis per time step
-    pixel_heights = (seq * (height - 1)).round().astype(int)
+    # -------- shape normalisation -------------------------------------------
+    if raw_xyz.ndim == 1:                      # flattened (621,)
+        if raw_xyz.size % 3 != 0:
+            raise ValueError("Flat signal length is not divisible by 3.")
+        raw_xyz = raw_xyz.reshape(-1, 3)       # → (207,3)
 
-    # build a mask image: each pixel stores bits for X(1), Y(2), Z(4)
+    if raw_xyz.shape[1] != 3:
+        raise ValueError("Input must have three columns (X,Y,Z).")
+
+    # -------- length normalisation to 207 -----------------------------------
+    seq = _pad_or_crop(raw_xyz, target_len=207).astype(float)  # (207,3)
+
+    # -------- per-sample min-max so curves occupy full height ---------------
+    if normalise:
+        mins = seq.min(axis=0)
+        spans = np.maximum(seq.max(axis=0) - mins, 1e-6)        # avoid /0
+        seq = (seq - mins) / spans                              # 0…1
+
+    # -------- rasterise curves to pixel heights -----------------------------
+    height = img_size
+    width  = 207
+    pixel_h = np.rint(seq * (height - 1)).astype(int)           # (207,3)
+
+    # -------- build 3-bit mask (0…7) ----------------------------------------
     mask = np.zeros((height, width), dtype=np.uint8)
-    for t in range(width):
-        for axis in range(3):
-            h = pixel_heights[t, axis]
-            start_row = height - 1 - h
-            mask[start_row:, t] |= (1 << axis)
+    for t in range(width):                       # column
+        for axis in range(3):                    # 0:X,1:Y,2:Z
+            h = pixel_h[t, axis]
+            mask[height - 1 - h :, t] |= (1 << axis)
 
-    # map mask→color
-    for m_val, bgr in _COLORS.items():
-        ys, xs = np.where(mask == m_val)
-        if ys.size > 0:
-            # assign RGB by reversing BGR
-            img[ys, xs, 0] = bgr[2]
-            img[ys, xs, 1] = bgr[1]
-            img[ys, xs, 2] = bgr[0]
+    # -------- colourise into 216×216 canvas ---------------------------------
+    img = np.zeros((height, img_size, 3), dtype=np.uint8)
+    for val in range(8):
+        ys, xs = np.where(mask == val)
+        if ys.size:
+            img[ys, xs, :] = _MASK_TO_RGB[val]
 
-    # pad rightmost columns
-    img[:, 207:, :] = img[:, 206:207, :]
+    # copy last drawn column to fill the remaining 9 px (207→216)
+    img[:, width:, :] = np.repeat(img[:, width - 1:width, :], img_size - width, axis=1)
+
+    # -------- debug info -----------------------------------------------------
+    # print(f"[INFO] unique mask values = {np.unique(mask)} | image shape = {img.shape}")
+
     return img
 
 
@@ -174,8 +206,8 @@ def get_imageDataset(
     )
 
     print("Converting signals to filled-area RGB images …")
-    X_tr_img = np.stack([signal_to_image(v) for v in X_tr_res], axis=0)
-    X_te_img = np.stack([signal_to_image(v) for v in X_te], axis=0)
+    X_tr_img = np.stack([signals_to_color_image(v) for v in X_tr_res], axis=0)
+    X_te_img = np.stack([signals_to_color_image(v) for v in X_te], axis=0)
 
     np.savez_compressed(
         npz_img_path,

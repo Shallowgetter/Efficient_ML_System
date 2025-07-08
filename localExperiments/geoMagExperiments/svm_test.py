@@ -62,7 +62,36 @@ train_time = time.time() - start
 logger.info(f"SVM training finished in {train_time:.2f} s")
 
 # ---------- 5. evaluation --------------------------------------------------
+logger.info("Evaluating SVM model on test set")
+
+# 预热推理（避免第一次推理的初始化开销）
+for _ in range(5):
+    _ = svm_clf.predict(X_test_scaled[:1])
+
+# 计算推理时间
+inference_times = []
+total_samples = len(X_test_scaled)
+
+# 对每个样本单独计时以获得准确的推理时间
+for i in range(total_samples):
+    start_time = time.time()
+    _ = svm_clf.predict(X_test_scaled[i:i+1])
+    end_time = time.time()
+    inference_times.append(end_time - start_time)
+
+# 获得预测结果
 y_pred = svm_clf.predict(X_test_scaled)
+
+# 计算平均推理时间
+total_inference_time = sum(inference_times)
+avg_inference_time_per_sample = total_inference_time / total_samples
+
+# 记录推理时间信息
+logger.info(f"SVM Inference Timing:")
+logger.info(f"  Total inference time: {total_inference_time:.4f} seconds")
+logger.info(f"  Average time per sample: {avg_inference_time_per_sample*1000:.4f} ms")
+logger.info(f"  Total samples: {total_samples}")
+logger.info(f"  Throughput: {total_samples/total_inference_time:.2f} samples/second")
 
 acc = accuracy_score(y_test, y_pred)
 pr  = precision_score(y_test, y_pred, average="weighted", zero_division=0)
@@ -70,6 +99,7 @@ rc  = recall_score(   y_test, y_pred, average="macro",    zero_division=0)
 f1  = f1_score(       y_test, y_pred, average="weighted", zero_division=0)
 
 logger.info(f"SVM Final Results | Acc:{acc:.4f}  Prec:{pr:.4f}  Recall:{rc:.4f}  F1:{f1:.4f}")
+logger.info(f"SVM Average Inference Time: {avg_inference_time_per_sample*1000:.4f} ms per sample")
 
 # classification report
 rep = classification_report(y_test, y_pred, digits=4)
@@ -101,6 +131,9 @@ with open(os.path.join(RESULT_DIR, "final_metrics.txt"), "w") as f:
     f.write("SVM Model Final Metrics\n")
     f.write("="*50 + "\n")
     f.write(f"SVM | Acc:{acc:.4f}  Prec:{pr:.4f}  Recall:{rc:.4f}  F1:{f1:.4f}\n")
+    f.write(f"SVM | Average Inference Time: {avg_inference_time_per_sample*1000:.4f} ms per sample\n")
+    f.write(f"SVM | Throughput: {1/avg_inference_time_per_sample:.2f} samples/second\n")
+    f.write(f"SVM | Training Time: {train_time:.2f} seconds\n")
 
 logger.info("SVM experiment completed successfully!")
 logger.info(f"All results saved in: {RESULT_DIR}")

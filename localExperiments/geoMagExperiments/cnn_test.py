@@ -210,14 +210,49 @@ def evaluate(model):
     
     model.eval()
     all_pred, all_true = [], []
+    
+    # 预热推理（避免第一次推理的初始化开销）
+    with torch.no_grad():
+        dummy_input = torch.randn(1, 207, 3).to(DEVICE)
+        for _ in range(5):
+            _ = model(dummy_input)
+    
+    # 计算推理时间
+    inference_times = []
+    total_samples = 0
+    
     with torch.no_grad():
         for Xb, yb in dl_val:
             Xb = Xb.to(DEVICE)
+            
+            # 记录推理时间
+            start_time = time.time()
             out = model(Xb)
+            end_time = time.time()
+            
+            batch_time = end_time - start_time
+            batch_size = Xb.size(0)
+            inference_times.append(batch_time)
+            total_samples += batch_size
+            
             all_pred.append(out.cpu().argmax(1))
             all_true.append(yb)
+    
     y_pred = torch.cat(all_pred).numpy()
     y_true = torch.cat(all_true).numpy()
+    
+    # 计算平均推理时间
+    total_inference_time = sum(inference_times)
+    avg_inference_time_per_sample = total_inference_time / total_samples
+    avg_inference_time_per_batch = total_inference_time / len(dl_val)
+    
+    # 记录推理时间信息
+    logger.info(f"CNN Inference Timing:")
+    logger.info(f"  Total inference time: {total_inference_time:.4f} seconds")
+    logger.info(f"  Average time per sample: {avg_inference_time_per_sample*1000:.4f} ms")
+    logger.info(f"  Average time per batch: {avg_inference_time_per_batch*1000:.4f} ms")
+    logger.info(f"  Total samples: {total_samples}")
+    logger.info(f"  Throughput: {total_samples/total_inference_time:.2f} samples/second")
     
     acc = accuracy_score(y_true, y_pred)
     pr  = precision_score(y_true, y_pred, average="weighted", zero_division=0)
@@ -234,7 +269,7 @@ def evaluate(model):
         f.write("CNN Classification Report:\n")
         f.write(class_report)
     
-    return acc, pr, rc, f1, y_true, y_pred
+    return acc, pr, rc, f1, y_true, y_pred, avg_inference_time_per_sample
 
 # ------------------------ 7. Main Execution ------------------------ #
 if __name__ == '__main__':
