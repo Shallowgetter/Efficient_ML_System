@@ -15,6 +15,8 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import (accuracy_score, precision_score,
                              recall_score, f1_score, classification_report)
 
+from spikingjelly.activation_based import layer, neuron, functional, surrogate, encoding
+
 # ---------- 0. Path & logger (reuse utils) ----------
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -51,6 +53,7 @@ logger.info(f"Running on: {DEVICE}, Seed: {SEED}")
 # ---------- 3. Load and preprocess data ----------
 DATA_PATH = "data/geoMag/geoMagDataset.npz"
 data = np.load(DATA_PATH)
+encoder = encoding.PoissonEncoder(step_mode='s')
 X_train, y_train = data["X_train"], data["y_train"]
 X_val, y_val     = data["X_test"] , data["y_test"]
 
@@ -73,7 +76,6 @@ dl_val   = DataLoader(SeqDataset(X_val,   y_val),   batch_size=batch_size, shuff
 logger.info(f"Data ready. Train batches: {len(dl_train)}, Val batches: {len(dl_val)}")
 
 # ---------- 5. Spiking Network Definition ----------
-from spikingjelly.activation_based import layer, neuron, functional, surrogate
 
 class SNN(nn.Module):
     """1-D CNN backbone with IF neurons."""
@@ -131,7 +133,7 @@ model = SNN().to(DEVICE)
 logger.info(f"SNN parameters: {sum(p.numel() for p in model.parameters())}")
 
 # ---------- 6. Training Function ----------
-def train(net, num_epochs=200, lr=1e-3):
+def train(net, num_epochs=200, lr=1e-3, T=100):
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=1e-4)
     history, best_val = {"tr": [], "val": []}, float("inf")
@@ -146,7 +148,11 @@ def train(net, num_epochs=200, lr=1e-3):
             xb, yb = xb.to(DEVICE), yb.to(DEVICE)
             optimizer.zero_grad()
             functional.reset_net(net)          # clear membranes
-            logits = net(xb)
+            out_fr = 0.0                       # reset output accumulator
+            for t in range(T):
+                encoded_xb = encoder(xb)  # Poisson encoding
+                out_fr += net(encoded_xb)  # forward pass
+            logits = out_fr / T  # average over time steps
             loss = criterion(logits, yb)
             loss.backward()
             optimizer.step()
@@ -160,7 +166,12 @@ def train(net, num_epochs=200, lr=1e-3):
             for xb, yb in dl_val:
                 xb, yb = xb.to(DEVICE), yb.to(DEVICE)
                 functional.reset_net(net)
-                logits = net(xb)
+                out_fr = 0.0  # reset output accumulator
+                for t in range(T):
+                    encoded_xb = encoder(xb)
+                    out_fr = net(encoded_xb)  # forward pass
+                # average over time steps
+                logits = out_fr / T
                 loss = criterion(logits, yb)
                 val_loss += loss.item() * xb.size(0)
         val_loss /= len(dl_val.dataset)
@@ -188,14 +199,18 @@ def train(net, num_epochs=200, lr=1e-3):
     return history
 
 # ---------- 7. Evaluation ----------
-def evaluate(net):
+def evaluate(net, T=100):
     net.eval()
     y_pred, y_true = [], []
     with torch.no_grad():
         for xb, yb in dl_val:
             xb = xb.to(DEVICE)
             functional.reset_net(net)
-            logits = net(xb)
+            out_fr = 0.0  # reset output accumulator
+            for t in range(T):  # simulate for 100 time steps
+                encoded_xb = encoder(xb)
+                out_fr = net(encoded_xb)  # forward pass
+            logits = out_fr / T # average over time steps
             y_pred.append(logits.cpu().argmax(1))
             y_true.append(yb)
     y_pred = torch.cat(y_pred).numpy()
