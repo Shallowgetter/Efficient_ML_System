@@ -139,10 +139,14 @@ def train(model, name, num_epochs=200):
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
 
     history = {"tr":[], "val":[]}
+    epoch_times = []  # 添加时间记录
+    best_val_loss = float("inf")  # 添加最佳验证损失跟踪
 
     start_time = time.time()
     
     for epoch in range(1, num_epochs+1):
+        epoch_start = time.time()
+        
         # Training phase
         model.train()
         running_train = 0.0
@@ -170,28 +174,38 @@ def train(model, name, num_epochs=200):
         history["tr"].append(epoch_tr)
         history["val"].append(epoch_val)
 
-        # Save checkpoint every epoch
+        # Save checkpoint every epoch with best tracking
         checkpoint_path = os.path.join(CHECKPOINT_DIR, f"{name.lower()}_epoch_{epoch:03d}.pth")
+        is_best = epoch_val < best_val_loss
+        if is_best: 
+            best_val_loss = epoch_val
+        
         save_checkpoint(
             model=model,
             optimizer=optimizer,
             epoch=epoch,
             loss=epoch_val,
-            filename=checkpoint_path
+            filename=checkpoint_path,
+            is_best=is_best,
+            best_filename=os.path.join(CHECKPOINT_DIR, f"{name.lower()}_best.pth")
         )
 
         if epoch % 10 == 0 or epoch <= 5:
             logger.info(f"{name} | Epoch {epoch:03d}  TrainLoss {epoch_tr:.4f}  ValLoss {epoch_val:.4f}")
+        
+        epoch_times.append(time.time() - epoch_start)
     
-    training_time = time.time() - start_time
-    logger.info(f"{name} | Training completed in {training_time:.2f} seconds")
+    total_training_time = time.time() - start_time
+    avg_epoch_time = float(np.mean(epoch_times))
+    logger.info(f"{name} | Training completed in {total_training_time:.2f} seconds")
+    logger.info(f"{name} | Average epoch time: {avg_epoch_time:.2f} seconds")
     
     # Save final model
-    model_path = os.path.join(RESULT_DIR, f"{name.lower()}_model.pth")
+    model_path = os.path.join(RESULT_DIR, f"{name.lower()}_model_final.pth")
     torch.save(model.state_dict(), model_path)
-    logger.info(f"{name} | Model saved to: {model_path}")
+    logger.info(f"{name} | Final model saved to: {model_path}")
     
-    return history
+    return history, total_training_time, avg_epoch_time
 
 def evaluate(model, name):
     logger.info(f"Evaluating {name} model on validation set")
@@ -264,8 +278,17 @@ logger.info("=" * 50)
 logger.info("Starting model training phase")
 logger.info("=" * 50)
 
-hist_lstm = train(model_lstm, "LSTM")
-hist_gru  = train(model_gru,  "GRU")
+hist_lstm, total_time_lstm, avg_epoch_time_lstm = train(model_lstm, "LSTM")
+hist_gru, total_time_gru, avg_epoch_time_gru = train(model_gru, "GRU")
+
+# Load best checkpoints before evaluation (像CNN一样)
+best_lstm_ckpt = os.path.join(CHECKPOINT_DIR, "lstm_best.pth")
+best_gru_ckpt = os.path.join(CHECKPOINT_DIR, "gru_best.pth")
+
+model_lstm.load_state_dict(torch.load(best_lstm_ckpt, map_location=DEVICE))
+model_gru.load_state_dict(torch.load(best_gru_ckpt, map_location=DEVICE))
+logger.info(f"Loaded best LSTM checkpoint from {best_lstm_ckpt}")
+logger.info(f"Loaded best GRU checkpoint from {best_gru_ckpt}")
 
 # ------------------------ 7. Evaluation ----------------------------------------- #
 logger.info("=" * 50)
@@ -273,22 +296,57 @@ logger.info("Starting model evaluation phase")
 logger.info("=" * 50)
 
 metrics = {}
-for name, mdl in [("LSTM", model_lstm), ("GRU", model_gru)]:
-    acc, pr, rc, f1, yt, yp, avg_inference_time = evaluate(mdl, name)
-    metrics[name] = (acc, pr, rc, f1, yt, yp, avg_inference_time)
-    logger.info(f"{name} Final Results | Acc:{acc:.4f}  Prec:{pr:.4f}  Recall:{rc:.4f}  F1:{f1:.4f}")
-    logger.info(f"{name} Average Inference Time: {avg_inference_time*1000:.4f} ms per sample")
+model_sizes = {}
 
-# Save metrics to file
+for name, mdl, ckpt_path in [("LSTM", model_lstm, best_lstm_ckpt), ("GRU", model_gru, best_gru_ckpt)]:
+    acc, pr, rc, f1, yt, yp, avg_inference_time = evaluate(mdl, name)
+    
+    # 计算模型大小 (像CNN一样)
+    model_size_mb = os.path.getsize(ckpt_path) / (1024 * 1024)
+    model_sizes[name] = model_size_mb
+    
+    metrics[name] = (acc, pr, rc, f1, yt, yp, avg_inference_time)
+    
+    # 更详细的结果记录
+    latency_ms = avg_inference_time * 1000
+    throughput = 1 / avg_inference_time
+    
+    logger.info(f"{name} Final Results:")
+    logger.info(f"  Accuracy: {acc:.4f}")
+    logger.info(f"  Precision: {pr:.4f}")
+    logger.info(f"  Recall: {rc:.4f}")
+    logger.info(f"  F1-Score: {f1:.4f}")
+    logger.info(f"  Latency: {latency_ms:.2f} ms/sample")
+    logger.info(f"  Throughput: {throughput:.2f} samples/second")
+    logger.info(f"  Model Size: {model_size_mb:.2f} MB")
+
+# Save comprehensive metrics to file (扩展版本)
 metrics_path = os.path.join(RESULT_DIR, "final_metrics.txt")
 with open(metrics_path, 'w') as f:
     f.write("Final Model Metrics\n")
     f.write("=" * 50 + "\n")
+    
+    # 添加训练时间信息
+    f.write("TRAINING SUMMARY:\n")
+    f.write(f"LSTM total train time (s): {total_time_lstm:.2f}\n")
+    f.write(f"LSTM avg epoch time (s):   {avg_epoch_time_lstm:.2f}\n")
+    f.write(f"GRU total train time (s):  {total_time_gru:.2f}\n")
+    f.write(f"GRU avg epoch time (s):    {avg_epoch_time_gru:.2f}\n")
+    f.write("-" * 30 + "\n")
+    
+    # 详细性能指标
+    f.write("PERFORMANCE METRICS:\n")
     for name, (acc, pr, rc, f1, _, _, avg_inference_time) in metrics.items():
-        f.write(f"{name} | Acc:{acc:.4f}  Prec:{pr:.4f}  Recall:{rc:.4f}  F1:{f1:.4f}\n")
-        f.write(f"{name} | Average Inference Time: {avg_inference_time*1000:.4f} ms per sample\n")
-        f.write(f"{name} | Throughput: {1/avg_inference_time:.2f} samples/second\n")
-        f.write("-" * 50 + "\n")
+        f.write(f"{name} Results:\n")
+        f.write(f"  Accuracy:                  {acc:.4f}\n")
+        f.write(f"  Precision (weighted):      {pr:.4f}\n")
+        f.write(f"  Recall (macro):            {rc:.4f}\n")
+        f.write(f"  F1-score (weighted):       {f1:.4f}\n")
+        f.write(f"  Latency per sample (ms):   {avg_inference_time*1000:.2f}\n")
+        f.write(f"  Throughput (samples/s):    {1/avg_inference_time:.2f}\n")
+        f.write(f"  Model size (MB):           {model_sizes[name]:.2f}\n")
+        f.write(f"  Parameter count:           {sum(p.numel() for p in (model_lstm if name=='LSTM' else model_gru).parameters())}\n")
+        f.write("-" * 30 + "\n")
 
 logger.info(f"Final metrics saved to: {metrics_path}")
 
@@ -377,9 +435,10 @@ logger.info("Experiment completed successfully!")
 logger.info(f"All results saved in: {RESULT_DIR}")
 logger.info(f"Checkpoints saved in: {CHECKPOINT_DIR}")
 logger.info("Generated files:")
-logger.info("- lstm_gru_experiment.log (log file)")
-logger.info("- lstm_model.pth, gru_model.pth (final model weights)")
-logger.info("- final_metrics.txt (summary metrics)")
+logger.info("- lstm_gru_experiment.log (detailed log file)")
+logger.info("- lstm_model_final.pth, gru_model_final.pth (final model weights)")
+logger.info("- lstm_best.pth, gru_best.pth (best model checkpoints)")
+logger.info("- final_metrics.txt (comprehensive summary metrics)")
 logger.info("- lstm_curves.png, gru_curves.png (individual model curves)")
 logger.info("- model_comparison.png (comparison plot)")
 logger.info("- cm_lstm.png, cm_gru.png (confusion matrices)")
